@@ -1,275 +1,376 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import API from "../api/api";
 
 function CourseDetails() {
-
   const { id } = useParams();
 
-  const [course, setCourse] =
-    useState(null);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [enrolling, setEnrolling] =
-    useState(false);
-
-  const [enrolled, setEnrolled] =
-    useState(false);
-
-  const [message, setMessage] =
-    useState("");
-
-  const user = JSON.parse(
-    localStorage.getItem("user") || "null"
-  );
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-
     const fetchCourse = async () => {
-
       try {
+        setLoading(true);
+        setError("");
 
-        const response =
-          await API.get(
-            `/courses/${id}`
-          );
+        const response = await API.get(`/courses/${id}`);
 
-        setCourse(
-          response.data.course
+        setCourse(response.data.course);
+      } catch (err) {
+        console.error("COURSE DETAILS ERROR:", err);
+
+        setError(
+          err.response?.data?.message ||
+            "Unable to load course details."
         );
-
-      } catch (error) {
-
-        console.error(
-          "COURSE ERROR:",
-          error
-        );
-
       } finally {
-
         setLoading(false);
-
       }
     };
 
     fetchCourse();
-
   }, [id]);
-
-  const handleEnroll = async () => {
-
-    setMessage("");
-
-    if (!user) {
-      setMessage(
-        "Please login first."
-      );
-      return;
-    }
-
-    if (user.role !== "student") {
-      setMessage(
-        "Only students can enroll."
-      );
-      return;
-    }
-
-    if (!user.id) {
-      setMessage(
-        "Student ID not found. Please login again."
-      );
-      return;
-    }
-
-    try {
-
-      setEnrolling(true);
-
-      const response =
-        await API.post(
-          "/enrollments",
-          {
-            student: user.id,
-            course: course._id,
-          }
-        );
-
-      if (response.data.success) {
-
-        setEnrolled(true);
-
-        setMessage(
-          "🎉 Enrolled successfully!"
-        );
-      }
-
-    } catch (error) {
-
-      console.error(
-        "ENROLL ERROR:",
-        error
-      );
-
-      const msg =
-        error.response?.data?.message ||
-        "Enrollment failed.";
-
-      if (
-        msg
-          .toLowerCase()
-          .includes("already enrolled")
-      ) {
-        setEnrolled(true);
-      }
-
-      setMessage(msg);
-
-    } finally {
-
-      setEnrolling(false);
-
-    }
-  };
 
   if (loading) {
     return (
-      <div className="page-container">
-        <h2>
-          Loading course...
-        </h2>
+      <div className="course-details-page">
+        <div className="course-details-loading">
+          <div className="loading-spinner"></div>
+          <h2>Loading course...</h2>
+          <p>Please wait while we load the course details.</p>
+        </div>
       </div>
     );
   }
 
-  if (!course) {
+  if (error || !course) {
     return (
-      <div className="page-container">
-        <h2>
-          Course not found
-        </h2>
+      <div className="course-details-page">
+        <div className="course-details-error">
+          <div className="course-error-icon">⚠️</div>
+
+          <h2>Course Not Found</h2>
+
+          <p>
+            {error || "The requested course could not be found."}
+          </p>
+
+          <Link to="/courses" className="back-courses-btn">
+            ← Back to Courses
+          </Link>
+        </div>
       </div>
     );
   }
+
+  const lessons = course.lessons || [];
 
   return (
-    <div className="page-container">
-
-      <div className="hero">
-
-        <span className="badge">
-          {course.category}
-        </span>
-
-        <h1>
-          {course.title}
-        </h1>
-
-        <p>
-          {course.description}
-        </p>
-
-        <p>
-          <strong>
-            Level:
-          </strong>{" "}
-          {course.level}
-        </p>
-
-        <p>
-          <strong>
-            Price:
-          </strong>{" "}
-          {course.price === 0
-            ? "Free"
-            : `₹${course.price}`}
-        </p>
-
-        <button
-          type="button"
-          onClick={handleEnroll}
-          disabled={
-            enrolling || enrolled
-          }
-        >
-          {enrolling
-            ? "Enrolling..."
-            : enrolled
-            ? "✓ Enrolled"
-            : "Enroll Now"}
-        </button>
-
-        {message && (
-          <div
-            className={
-              message.includes(
-                "successfully"
-              )
-                ? "success"
-                : "error"
-            }
-          >
-            {message}
+    <div className="course-details-page">
+      <section className="course-details-hero">
+        <div className="course-details-container">
+          <div className="course-breadcrumb">
+            <Link to="/courses">Courses</Link>
+            <span>›</span>
+            <span>{course.category || "Course"}</span>
           </div>
-        )}
 
-      </div>
+          <div className="course-details-hero-content">
+            <div className="course-details-main">
+              <span className="details-category">
+                {course.category || "General"}
+              </span>
 
-      <h2>
-        Course Lessons 📚
-      </h2>
+              <h1>{course.title}</h1>
 
-      {course.lessons?.length > 0 ? (
-
-        course.lessons.map(
-          (lesson, index) => (
-
-            <div
-              className="lesson-card"
-              key={index}
-            >
-
-              <h3>
-                {index + 1}.{" "}
-                {lesson.title}
-              </h3>
-
-              <p>
-                {lesson.description}
+              <p className="details-description">
+                {course.description}
               </p>
 
-              <p>
-                <strong>
-                  Duration:
-                </strong>{" "}
-                {lesson.duration}
-                {" "}minutes
-              </p>
+              <div className="course-meta">
+                <div className="meta-item">
+                  <span className="meta-icon">📊</span>
 
-              <Link
-                to={`/courses/${course._id}/lesson/${index}`}
-              >
-                <button>
-                  Start Lesson →
-                </button>
-              </Link>
+                  <div>
+                    <small>Level</small>
+                    <strong>
+                      {course.level || "Beginner"}
+                    </strong>
+                  </div>
+                </div>
 
+                <div className="meta-item">
+                  <span className="meta-icon">📚</span>
+
+                  <div>
+                    <small>Lessons</small>
+                    <strong>{lessons.length}</strong>
+                  </div>
+                </div>
+
+                <div className="meta-item">
+                  <span className="meta-icon">👨‍🏫</span>
+
+                  <div>
+                    <small>Instructor</small>
+                    <strong>
+                      {course.instructor?.name ||
+                        "LearnAI Instructor"}
+                    </strong>
+                  </div>
+                </div>
+              </div>
             </div>
 
-          )
-        )
+            <div className="course-preview-card">
+              <div className="course-preview-image">
+                {course.thumbnail ? (
+                  <img
+                    src={course.thumbnail}
+                    alt={course.title}
+                  />
+                ) : (
+                  <div className="preview-placeholder">
+                    <span>🎓</span>
+                    <strong>LearnAI</strong>
+                    <small>Start Learning</small>
+                  </div>
+                )}
+              </div>
 
-      ) : (
+              <div className="preview-content">
+                <div className="preview-price">
+                  {course.price > 0
+                    ? `₹${course.price}`
+                    : "Free"}
+                </div>
 
-        <div className="card">
-          <p>
-            No lessons available.
-          </p>
+                <Link
+                  to={
+                    lessons.length > 0
+                      ? `/courses/${course._id}/lesson/0`
+                      : "#"
+                  }
+                  className={`start-course-btn ${
+                    lessons.length === 0
+                      ? "disabled-btn"
+                      : ""
+                  }`}
+                  onClick={(e) => {
+                    if (lessons.length === 0) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  {lessons.length > 0
+                    ? "▶ Start Learning"
+                    : "No Lessons Available"}
+                </Link>
+
+                <div className="preview-features">
+                  <div>
+                    <span>✓</span>
+                    Course access
+                  </div>
+
+                  <div>
+                    <span>✓</span>
+                    Learn at your own pace
+                  </div>
+
+                  <div>
+                    <span>✓</span>
+                    Track your progress
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main className="course-details-container course-body">
+        <div className="course-content-column">
+          <section className="details-section">
+            <span className="section-label">
+              ABOUT THIS COURSE
+            </span>
+
+            <h2>What You'll Learn</h2>
+
+            <p className="about-course">
+              {course.description}
+            </p>
+
+            <div className="learning-points">
+              <div>
+                <span>✓</span>
+                Build practical skills through structured lessons
+              </div>
+
+              <div>
+                <span>✓</span>
+                Learn important concepts step by step
+              </div>
+
+              <div>
+                <span>✓</span>
+                Practice what you learn through the course
+              </div>
+
+              <div>
+                <span>✓</span>
+                Learn at your own pace with LearnAI
+              </div>
+            </div>
+          </section>
+
+          <section className="details-section">
+            <div className="lessons-heading">
+              <div>
+                <span className="section-label">
+                  COURSE CONTENT
+                </span>
+
+                <h2>Course Lessons</h2>
+              </div>
+
+              <span className="lesson-count">
+                {lessons.length}{" "}
+                {lessons.length === 1
+                  ? "Lesson"
+                  : "Lessons"}
+              </span>
+            </div>
+
+            {lessons.length === 0 ? (
+              <div className="no-lessons">
+                <span>📚</span>
+
+                <h3>No lessons available yet</h3>
+
+                <p>
+                  The instructor has not added lessons
+                  to this course yet.
+                </p>
+              </div>
+            ) : (
+              <div className="lessons-list">
+                {lessons.map((lesson, index) => (
+                  <div
+                    className="lesson-card"
+                    key={lesson._id || index}
+                  >
+                    <div className="lesson-number">
+                      {index + 1}
+                    </div>
+
+                    <div className="lesson-info">
+                      <h3>
+                        {lesson.title ||
+                          `Lesson ${index + 1}`}
+                      </h3>
+
+                      <p>
+                        {lesson.description ||
+                          "Learn important concepts in this lesson."}
+                      </p>
+
+                      <div className="lesson-duration">
+                        ⏱{" "}
+                        {lesson.duration
+                          ? `${lesson.duration} minutes`
+                          : "Lesson"}
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/courses/${course._id}/lesson/${index}`}
+                      className="lesson-start-btn"
+                    >
+                      Start
+                      <span>→</span>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
 
-      )}
+        <aside className="course-sidebar">
+          <div className="sidebar-card">
+            <span className="section-label">
+              COURSE INFORMATION
+            </span>
 
+            <h3>Course Details</h3>
+
+            <div className="sidebar-detail">
+              <span>📚</span>
+
+              <div>
+                <small>Category</small>
+                <strong>
+                  {course.category || "General"}
+                </strong>
+              </div>
+            </div>
+
+            <div className="sidebar-detail">
+              <span>📊</span>
+
+              <div>
+                <small>Level</small>
+                <strong>
+                  {course.level || "Beginner"}
+                </strong>
+              </div>
+            </div>
+
+            <div className="sidebar-detail">
+              <span>🎥</span>
+
+              <div>
+                <small>Total Lessons</small>
+                <strong>{lessons.length}</strong>
+              </div>
+            </div>
+
+            <div className="sidebar-detail">
+              <span>💰</span>
+
+              <div>
+                <small>Course Price</small>
+                <strong>
+                  {course.price > 0
+                    ? `₹${course.price}`
+                    : "Free"}
+                </strong>
+              </div>
+            </div>
+
+            <div className="sidebar-instructor">
+              <div className="sidebar-avatar">
+                {course.instructor?.name
+                  ?.charAt(0)
+                  ?.toUpperCase() || "I"}
+              </div>
+
+              <div>
+                <small>Instructor</small>
+
+                <strong>
+                  {course.instructor?.name ||
+                    "LearnAI Instructor"}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
     </div>
   );
 }

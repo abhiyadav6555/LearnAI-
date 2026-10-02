@@ -25,10 +25,6 @@ function CreateCourse() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  // =========================
-  // COURSE INPUT
-  // =========================
-
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -36,14 +32,7 @@ function CreateCourse() {
     });
   };
 
-  // =========================
-  // LESSON INPUT
-  // =========================
-
-  const handleLessonChange = (
-    index,
-    e
-  ) => {
+  const handleLessonChange = (index, e) => {
     const updatedLessons = [...lessons];
 
     updatedLessons[index] = {
@@ -53,10 +42,6 @@ function CreateCourse() {
 
     setLessons(updatedLessons);
   };
-
-  // =========================
-  // ADD LESSON
-  // =========================
 
   const addLesson = () => {
     setLessons([
@@ -69,25 +54,15 @@ function CreateCourse() {
     ]);
   };
 
-  // =========================
-  // REMOVE LESSON
-  // =========================
-
   const removeLesson = (index) => {
     if (lessons.length === 1) {
       return;
     }
 
     setLessons(
-      lessons.filter(
-        (_, i) => i !== index
-      )
+      lessons.filter((_, i) => i !== index)
     );
   };
-
-  // =========================
-  // CREATE COURSE
-  // =========================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,9 +75,7 @@ function CreateCourse() {
     );
 
     if (!user) {
-      setError(
-        "Please login first."
-      );
+      setError("Please login first.");
       return;
     }
 
@@ -129,17 +102,11 @@ function CreateCourse() {
         category: form.category,
         level: form.level,
         price: Number(form.price),
-
-        lessons: lessons.map(
-          (lesson) => ({
-            title: lesson.title,
-            description:
-              lesson.description,
-            duration: Number(
-              lesson.duration
-            ),
-          })
-        ),
+        lessons: lessons.map((lesson) => ({
+          title: lesson.title,
+          description: lesson.description,
+          duration: Number(lesson.duration),
+        })),
       };
 
       const response = await API.post(
@@ -153,9 +120,7 @@ function CreateCourse() {
         );
 
         setTimeout(() => {
-          navigate(
-            "/instructor-dashboard"
-          );
+          navigate("/instructor-dashboard");
         }, 1200);
       }
     } catch (error) {
@@ -174,245 +139,322 @@ function CreateCourse() {
   };
 
   return (
-    <div className="page-container">
+    <div className="create-course-page">
+      <div className="create-course-container">
 
-      <div className="form-card">
+        <div className="create-course-header">
+          <div>
+            <span className="create-course-badge">
+              🎓 Instructor Panel
+            </span>
 
-        <h1>
-          Create New Course 🚀
-        </h1>
+            <h1>Create New Course</h1>
 
-        <p
-          style={{
-            textAlign: "center",
-            marginBottom: "25px",
-          }}
-        >
-          Share your knowledge with
-          students.
-        </p>
+            <p>
+              Share your knowledge and create an
+              engaging learning experience for
+              students.
+            </p>
+          </div>
 
-        {/* SUCCESS */}
+          <div className="create-course-header-icon">
+            📚
+          </div>
+        </div>
 
         {message && (
-          <div className="success">
+          <div className="create-success">
+            <span>✓</span>
             {message}
           </div>
         )}
 
-        {/* ERROR */}
-
         {error && (
-          <div className="error">
+          <div className="create-error">
+            <span>!</span>
             {error}
           </div>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-        >
+        <form onSubmit={handleSubmit}>
 
-          {/* COURSE TITLE */}
+          <section className="create-section">
 
-          <label>
-            Course Title
-          </label>
+            <div className="create-section-heading">
+              <div className="section-number">
+                01
+              </div>
 
-          <input
-            type="text"
-            name="title"
-            placeholder="Example: Full Stack MERN Development"
-            value={form.title}
-            onChange={handleChange}
-            required
-          />
+              <div>
+                <h2>Course Information</h2>
 
-          {/* DESCRIPTION */}
+                <p>
+                  Add the basic information about
+                  your course.
+                </p>
+              </div>
+            </div>
 
-          <label>
-            Course Description
-          </label>
+            <div className="create-form-grid">
 
-          <textarea
-            name="description"
-            placeholder="Describe what students will learn..."
-            value={form.description}
-            onChange={handleChange}
-            required
-          />
-
-          {/* CATEGORY */}
-
-          <label>
-            Category
-          </label>
-
-          <input
-            type="text"
-            name="category"
-            placeholder="Example: Web Development"
-            value={form.category}
-            onChange={handleChange}
-            required
-          />
-
-          {/* LEVEL */}
-
-          <label>
-            Course Level
-          </label>
-
-          <select
-            name="level"
-            value={form.level}
-            onChange={handleChange}
-          >
-            <option value="Beginner">
-              Beginner
-            </option>
-
-            <option value="Intermediate">
-              Intermediate
-            </option>
-
-            <option value="Advanced">
-              Advanced
-            </option>
-          </select>
-
-          {/* PRICE */}
-
-          <label>
-            Course Price (₹)
-          </label>
-
-          <input
-            type="number"
-            name="price"
-            min="0"
-            placeholder="0 for Free"
-            value={form.price}
-            onChange={handleChange}
-          />
-
-          <hr />
-
-          {/* LESSONS */}
-
-          <h2>
-            Course Lessons 📚
-          </h2>
-
-          {lessons.map(
-            (lesson, index) => (
-
-              <div
-                className="card"
-                key={index}
-              >
-
-                <h3>
-                  Lesson {index + 1}
-                </h3>
-
-                <label>
-                  Lesson Title
-                </label>
+              <div className="create-form-group full-width">
+                <label>Course Title</label>
 
                 <input
                   type="text"
                   name="title"
-                  placeholder="Example: Introduction to MERN"
-                  value={lesson.title}
-                  onChange={(e) =>
-                    handleLessonChange(
-                      index,
-                      e
-                    )
-                  }
+                  placeholder="Example: Full Stack MERN Development"
+                  value={form.title}
+                  onChange={handleChange}
                   required
                 />
+              </div>
 
-                <label>
-                  Lesson Description
-                </label>
+              <div className="create-form-group full-width">
+                <label>Course Description</label>
 
                 <textarea
                   name="description"
-                  placeholder="What will students learn?"
-                  value={
-                    lesson.description
-                  }
-                  onChange={(e) =>
-                    handleLessonChange(
-                      index,
-                      e
-                    )
-                  }
+                  placeholder="Describe what students will learn in this course..."
+                  value={form.description}
+                  onChange={handleChange}
+                  rows="5"
                   required
                 />
+              </div>
 
-                <label>
-                  Duration (minutes)
-                </label>
+              <div className="create-form-group">
+                <label>Category</label>
 
                 <input
-                  type="number"
-                  name="duration"
-                  min="1"
-                  value={
-                    lesson.duration
-                  }
-                  onChange={(e) =>
-                    handleLessonChange(
-                      index,
-                      e
-                    )
-                  }
+                  type="text"
+                  name="category"
+                  placeholder="Example: Web Development"
+                  value={form.category}
+                  onChange={handleChange}
                   required
                 />
-
-                {lessons.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeLesson(index)
-                    }
-                  >
-                    Remove Lesson
-                  </button>
-                )}
-
               </div>
-            )
-          )}
 
-          {/* ADD LESSON */}
+              <div className="create-form-group">
+                <label>Course Level</label>
 
-          <button
-            type="button"
-            onClick={addLesson}
-          >
-            + Add Another Lesson
-          </button>
+                <select
+                  name="level"
+                  value={form.level}
+                  onChange={handleChange}
+                >
+                  <option value="Beginner">
+                    Beginner
+                  </option>
 
-          <hr />
+                  <option value="Intermediate">
+                    Intermediate
+                  </option>
 
-          {/* SUBMIT */}
+                  <option value="Advanced">
+                    Advanced
+                  </option>
+                </select>
+              </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-          >
-            {loading
-              ? "Creating Course..."
-              : "🚀 Create Course"}
-          </button>
+              <div className="create-form-group">
+                <label>Course Price</label>
+
+                <div className="price-input">
+                  <span>₹</span>
+
+                  <input
+                    type="number"
+                    name="price"
+                    min="0"
+                    placeholder="0"
+                    value={form.price}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <small>
+                  Enter 0 to make this course free.
+                </small>
+              </div>
+
+            </div>
+          </section>
+
+          <section className="create-section">
+
+            <div className="create-section-heading">
+              <div className="section-number">
+                02
+              </div>
+
+              <div>
+                <h2>Course Lessons</h2>
+
+                <p>
+                  Add lessons that students will
+                  complete in your course.
+                </p>
+              </div>
+            </div>
+
+            <div className="lessons-list">
+
+              {lessons.map((lesson, index) => (
+                <div
+                  className="lesson-create-card"
+                  key={index}
+                >
+
+                  <div className="lesson-create-header">
+
+                    <div className="lesson-number">
+                      {index + 1}
+                    </div>
+
+                    <div>
+                      <h3>
+                        Lesson {index + 1}
+                      </h3>
+
+                      <span>
+                        Add lesson details
+                      </span>
+                    </div>
+
+                    {lessons.length > 1 && (
+                      <button
+                        type="button"
+                        className="remove-lesson-btn"
+                        onClick={() =>
+                          removeLesson(index)
+                        }
+                      >
+                        Remove
+                      </button>
+                    )}
+
+                  </div>
+
+                  <div className="lesson-form">
+
+                    <div className="create-form-group">
+                      <label>
+                        Lesson Title
+                      </label>
+
+                      <input
+                        type="text"
+                        name="title"
+                        placeholder="Example: Introduction to MERN"
+                        value={lesson.title}
+                        onChange={(e) =>
+                          handleLessonChange(
+                            index,
+                            e
+                          )
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="create-form-group">
+                      <label>
+                        Duration
+                      </label>
+
+                      <div className="duration-input">
+                        <input
+                          type="number"
+                          name="duration"
+                          min="1"
+                          value={lesson.duration}
+                          onChange={(e) =>
+                            handleLessonChange(
+                              index,
+                              e
+                            )
+                          }
+                          required
+                        />
+
+                        <span>minutes</span>
+                      </div>
+                    </div>
+
+                    <div className="create-form-group full-width">
+                      <label>
+                        Lesson Description
+                      </label>
+
+                      <textarea
+                        name="description"
+                        placeholder="Explain what students will learn in this lesson..."
+                        value={
+                          lesson.description
+                        }
+                        onChange={(e) =>
+                          handleLessonChange(
+                            index,
+                            e
+                          )
+                        }
+                        rows="4"
+                        required
+                      />
+                    </div>
+
+                  </div>
+                </div>
+              ))}
+
+            </div>
+
+            <button
+              type="button"
+              className="add-lesson-btn"
+              onClick={addLesson}
+            >
+              <span>+</span>
+              Add Another Lesson
+            </button>
+
+          </section>
+
+          <div className="create-course-actions">
+
+            <button
+              type="button"
+              className="cancel-course-btn"
+              onClick={() =>
+                navigate("/instructor-dashboard")
+              }
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="submit-course-btn"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="button-spinner"></span>
+                  Creating Course...
+                </>
+              ) : (
+                <>
+                  🚀 Create Course
+                </>
+              )}
+            </button>
+
+          </div>
 
         </form>
-
       </div>
-
     </div>
   );
 }
