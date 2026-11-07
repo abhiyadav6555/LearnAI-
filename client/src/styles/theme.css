@@ -1,0 +1,66 @@
+
+:root {
+  --primary: #7547e8;
+  --primary-dark: #6035cc;
+  --primary-light: #a78bfa;
+  --secondary: #9b6cff;
+
+  --navy: #101426;
+  --navy-light: #171d35;
+  --navy-card: #1b2340;
+
+  --white: #ffffff;
+  --text: #f1f5f9;
+  --muted: #a5b0c5;
+
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+
+  --border: rgba(255,255,255,0.1);
+
+  --shadow:
+    0 12px 35px rgba(0,0,0,0.22);
+
+  --shadow-hover:
+    0 18px 45px rgba(117,71,232,0.2);
+
+  --radius: 16px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(117,71,232,0.12),
+      transparent 32%
+    ),
+    #0c1020;
+  color: var(--text);
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(167,139,250,0.7);
+  outline-offset: 3px;
+}
+
+::selection {
+  color: #ffffff;
+  background: #7547e8;
+}

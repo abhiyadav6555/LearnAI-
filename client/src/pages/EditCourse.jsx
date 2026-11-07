@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../api/api";
@@ -16,21 +17,13 @@ function EditCourse() {
   });
 
   const [lessons, setLessons] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-
-  // ===============================
-  // FETCH COURSE
-  // ===============================
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await API.get(
-          `/courses/${id}`
-        );
-
+        const response = await API.get(`/courses/${id}`);
         const course = response.data.course;
 
         setFormData({
@@ -43,17 +36,9 @@ function EditCourse() {
         });
 
         setLessons(course.lessons || []);
-
       } catch (error) {
-        console.error(
-          "FETCH COURSE ERROR:",
-          error
-        );
-
-        alert(
-          error.response?.data?.message ||
-          "Unable to load course"
-        );
+        console.error("FETCH COURSE ERROR:", error);
+        alert(error.response?.data?.message || "Unable to load course");
       } finally {
         setLoading(false);
       }
@@ -62,20 +47,12 @@ function EditCourse() {
     fetchCourse();
   }, [id]);
 
-  // ===============================
-  // COURSE INPUT CHANGE
-  // ===============================
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
-
-  // ===============================
-  // LESSON CHANGE
-  // ===============================
 
   const handleLessonChange = (index, e) => {
     const updatedLessons = [...lessons];
@@ -87,10 +64,6 @@ function EditCourse() {
 
     setLessons(updatedLessons);
   };
-
-  // ===============================
-  // ADD LESSON
-  // ===============================
 
   const addLesson = () => {
     setLessons([
@@ -105,46 +78,25 @@ function EditCourse() {
     ]);
   };
 
-  // ===============================
-  // REMOVE LESSON
-  // ===============================
-
   const removeLesson = (index) => {
-    const updatedLessons = lessons.filter(
-      (_, i) => i !== index
-    );
-
-    setLessons(updatedLessons);
+    setLessons(lessons.filter((_, i) => i !== index));
   };
-
-  // ===============================
-  // UPDATE COURSE
-  // ===============================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setUpdating(true);
 
     try {
-      const token = localStorage.getItem(
-        "token"
-      );
+      const token = localStorage.getItem("token");
 
       const updatedCourse = {
         ...formData,
-
         price: Number(formData.price),
-
-        lessons: lessons.map(
-          (lesson, index) => ({
-            ...lesson,
-            duration: Number(
-              lesson.duration
-            ),
-            order: index + 1,
-          })
-        ),
+        lessons: lessons.map((lesson, index) => ({
+          ...lesson,
+          duration: Number(lesson.duration),
+          order: index + 1,
+        })),
       };
 
       const response = await API.put(
@@ -158,267 +110,261 @@ function EditCourse() {
       );
 
       if (response.data.success) {
-        alert(
-          "Course updated successfully!"
-        );
-
+        alert("Course updated successfully!");
         navigate("/instructor-dashboard");
       }
-
     } catch (error) {
-      console.error(
-        "UPDATE COURSE ERROR:",
-        error
-      );
-
-      alert(
-        error.response?.data?.message ||
-        "Course update failed"
-      );
+      console.error("UPDATE COURSE ERROR:", error);
+      alert(error.response?.data?.message || "Course update failed");
     } finally {
       setUpdating(false);
     }
   };
 
-  // ===============================
-  // LOADING
-  // ===============================
-
   if (loading) {
     return (
-      <h2>
-        Loading course...
-      </h2>
+      <div className="create-course-page">
+        <div className="create-course-container">
+          <p>Loading course...</p>
+        </div>
+      </div>
     );
   }
 
-  // ===============================
-  // UI
-  // ===============================
-
   return (
-    <div>
+    <div className="create-course-page">
+      <div className="create-course-container">
 
-      <h1>
-        Edit Course
-      </h1>
+        <div className="create-course-header">
+          <div>
+            <span className="create-course-badge">
+              🎓 Instructor Panel
+            </span>
 
-      <form onSubmit={handleSubmit}>
+            <h1>Edit Course</h1>
 
-        {/* COURSE TITLE */}
+            <p>
+              Update your course information and manage your lessons.
+            </p>
+          </div>
 
-        <input
-          type="text"
-          name="title"
-          placeholder="Course Title"
-          value={formData.title}
-          onChange={handleChange}
-          required
-        />
+          <div className="create-course-header-icon">
+            📚
+          </div>
+        </div>
 
-        <br />
-        <br />
+        <form onSubmit={handleSubmit}>
 
-        {/* DESCRIPTION */}
+          <section className="create-section">
+            <div className="create-section-heading">
+              <div className="section-number">01</div>
 
-        <textarea
-          name="description"
-          placeholder="Course Description"
-          value={formData.description}
-          onChange={handleChange}
-          required
-        />
+              <div>
+                <h2>Course Information</h2>
+                <p>Update the basic information about your course.</p>
+              </div>
+            </div>
 
-        <br />
-        <br />
+            <div className="create-form-grid">
 
-        {/* CATEGORY */}
+              <div className="create-form-group full-width">
+                <label>Course Title</label>
+                <input
+                  type="text"
+                  name="title"
+                  placeholder="Course Title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-        <input
-          type="text"
-          name="category"
-          placeholder="Category"
-          value={formData.category}
-          onChange={handleChange}
-          required
-        />
+              <div className="create-form-group full-width">
+                <label>Course Description</label>
+                <textarea
+                  name="description"
+                  placeholder="Course Description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="5"
+                  required
+                />
+              </div>
 
-        <br />
-        <br />
+              <div className="create-form-group">
+                <label>Category</label>
+                <input
+                  type="text"
+                  name="category"
+                  placeholder="Category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-        {/* LEVEL */}
+              <div className="create-form-group">
+                <label>Course Level</label>
+                <select
+                  name="level"
+                  value={formData.level}
+                  onChange={handleChange}
+                >
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
 
-        <select
-          name="level"
-          value={formData.level}
-          onChange={handleChange}
-        >
-          <option value="Beginner">
-            Beginner
-          </option>
+              <div className="create-form-group">
+                <label>Course Price</label>
+                <div className="price-input">
+                  <span>₹</span>
+                  <input
+                    type="number"
+                    name="price"
+                    min="0"
+                    value={formData.price}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
 
-          <option value="Intermediate">
-            Intermediate
-          </option>
-
-          <option value="Advanced">
-            Advanced
-          </option>
-        </select>
-
-        <br />
-        <br />
-
-        {/* PRICE */}
-
-        <input
-          type="number"
-          name="price"
-          min="0"
-          value={formData.price}
-          onChange={handleChange}
-        />
-
-        <br />
-        <br />
-
-        {/* THUMBNAIL */}
-
-        <input
-          type="text"
-          name="thumbnail"
-          placeholder="Thumbnail URL"
-          value={formData.thumbnail}
-          onChange={handleChange}
-        />
-
-        <hr />
-
-        <h2>
-          Lessons
-        </h2>
-
-        {/* LESSONS */}
-
-        {lessons.map(
-          (lesson, index) => (
-            <div key={index}>
-
-              <h3>
-                Lesson {index + 1}
-              </h3>
-
-              <input
-                type="text"
-                name="title"
-                placeholder="Lesson Title"
-                value={lesson.title || ""}
-                onChange={(e) =>
-                  handleLessonChange(
-                    index,
-                    e
-                  )
-                }
-                required
-              />
-
-              <br />
-              <br />
-
-              <textarea
-                name="description"
-                placeholder="Lesson Description"
-                value={
-                  lesson.description || ""
-                }
-                onChange={(e) =>
-                  handleLessonChange(
-                    index,
-                    e
-                  )
-                }
-              />
-
-              <br />
-              <br />
-
-              <input
-                type="text"
-                name="videoUrl"
-                placeholder="Video URL"
-                value={
-                  lesson.videoUrl || ""
-                }
-                onChange={(e) =>
-                  handleLessonChange(
-                    index,
-                    e
-                  )
-                }
-              />
-
-              <br />
-              <br />
-
-              <input
-                type="number"
-                name="duration"
-                min="0"
-                placeholder="Duration"
-                value={
-                  lesson.duration || 0
-                }
-                onChange={(e) =>
-                  handleLessonChange(
-                    index,
-                    e
-                  )
-                }
-              />
-
-              <br />
-              <br />
-
-              <button
-                type="button"
-                onClick={() =>
-                  removeLesson(index)
-                }
-              >
-                Remove Lesson
-              </button>
-
-              <hr />
+              <div className="create-form-group full-width">
+                <label>Thumbnail URL</label>
+                <input
+                  type="text"
+                  name="thumbnail"
+                  placeholder="Enter thumbnail image URL"
+                  value={formData.thumbnail}
+                  onChange={handleChange}
+                />
+              </div>
 
             </div>
-          )
-        )}
+          </section>
 
-        {/* ADD LESSON */}
+          <section className="create-section">
+            <div className="create-section-heading">
+              <div className="section-number">02</div>
 
-        <button
-          type="button"
-          onClick={addLesson}
-        >
-          + Add Lesson
-        </button>
+              <div>
+                <h2>Course Lessons</h2>
+                <p>Update, add or remove course lessons.</p>
+              </div>
+            </div>
 
-        <br />
-        <br />
+            <div className="lessons-list">
 
-        {/* UPDATE */}
+              {lessons.map((lesson, index) => (
+                <div className="lesson-create-card" key={index}>
 
-        <button
-          type="submit"
-          disabled={updating}
-        >
-          {updating
-            ? "Updating..."
-            : "Update Course"}
-        </button>
+                  <div className="lesson-create-header">
+                    <div className="lesson-number">
+                      {index + 1}
+                    </div>
 
-      </form>
+                    <div>
+                      <h3>Lesson {index + 1}</h3>
+                      <span>Edit lesson details</span>
+                    </div>
 
+                    <button
+                      type="button"
+                      className="remove-lesson-btn"
+                      onClick={() => removeLesson(index)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="lesson-form">
+
+                    <div className="create-form-group">
+                      <label>Lesson Title</label>
+                      <input
+                        type="text"
+                        name="title"
+                        placeholder="Lesson Title"
+                        value={lesson.title || ""}
+                        onChange={(e) => handleLessonChange(index, e)}
+                        required
+                      />
+                    </div>
+
+                    <div className="create-form-group">
+                      <label>Duration</label>
+                      <div className="duration-input">
+                        <input
+                          type="number"
+                          name="duration"
+                          min="0"
+                          placeholder="Duration"
+                          value={lesson.duration || 0}
+                          onChange={(e) => handleLessonChange(index, e)}
+                        />
+                        <span>minutes</span>
+                      </div>
+                    </div>
+
+                    <div className="create-form-group full-width">
+                      <label>Lesson Description</label>
+                      <textarea
+                        name="description"
+                        placeholder="Lesson Description"
+                        value={lesson.description || ""}
+                        onChange={(e) => handleLessonChange(index, e)}
+                        rows="4"
+                      />
+                    </div>
+
+                    <div className="create-form-group full-width">
+                      <label>Video URL</label>
+                      <input
+                        type="text"
+                        name="videoUrl"
+                        placeholder="Enter lesson video URL"
+                        value={lesson.videoUrl || ""}
+                        onChange={(e) => handleLessonChange(index, e)}
+                      />
+                    </div>
+
+                  </div>
+                </div>
+              ))}
+
+            </div>
+
+            <button
+              type="button"
+              className="add-lesson-btn"
+              onClick={addLesson}
+            >
+              <span>+</span>
+              Add Another Lesson
+            </button>
+          </section>
+
+          <div className="create-course-actions">
+            <button
+              type="button"
+              className="cancel-course-btn"
+              onClick={() => navigate("/instructor-dashboard")}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="submit-course-btn"
+              disabled={updating}
+            >
+              {updating ? "Updating Course..." : "✓ Update Course"}
+            </button>
+          </div>
+
+        </form>
+      </div>
     </div>
   );
 }

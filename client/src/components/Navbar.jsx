@@ -1,486 +1,308 @@
-import { Link, useNavigate } from "react-router-dom";
+
+import { NavLink, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
 
-  const token = localStorage.getItem("token");
-
-  const user = JSON.parse(
-    localStorage.getItem("user") || "null"
-  );
+  const dashboardPath =
+    user?.role === "instructor" || user?.role === "admin"
+      ? "/instructor-dashboard"
+      : "/student-dashboard";
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    navigate("/login");
+    logout();
+    navigate("/login", { replace: true });
   };
+
+  const navClass = ({ isActive }) =>
+    `nav-item ${isActive ? "active" : ""}`;
 
   return (
     <>
-      {/* =====================================================
-          NAVBAR
-      ====================================================== */}
-
       <nav className="learnai-navbar">
-
-        {/* ================= LOGO ================= */}
-
-        <Link to="/courses" className="learnai-logo">
-          <span className="logo-icon">🎓</span>
-          <span>LearnAI</span>
-        </Link>
-
-
-        {/* ================= NAVIGATION ================= */}
-
-        <div className="learnai-navigation">
-
-          <Link to="/courses">
-            Courses
+        <div className="navbar-inner">
+          <Link to="/" className="learnai-logo">
+            <span className="logo-icon">🎓</span>
+            <span>Learn<span>AI</span></span>
           </Link>
 
+          <div className="learnai-navigation">
+            <NavLink to="/courses" className={navClass}>
+              Courses
+            </NavLink>
 
-          {/* Dashboard */}
-
-          {token && (
-            user?.role === "instructor" ? (
-              <Link to="/instructor-dashboard">
+            {isAuthenticated && (
+              <NavLink
+                to={dashboardPath}
+                className={navClass}
+              >
                 Dashboard
-              </Link>
+              </NavLink>
+            )}
+
+            {isAuthenticated && (
+              <NavLink to="/profile" className={navClass}>
+                Profile
+              </NavLink>
+            )}
+
+            {!isAuthenticated ? (
+              <>
+                <NavLink
+                  to="/login"
+                  className="nav-login"
+                >
+                  Log In
+                </NavLink>
+
+                <Link
+                  to="/register"
+                  className="nav-register"
+                >
+                  Get Started <span>→</span>
+                </Link>
+              </>
             ) : (
-              <Link to="/student-dashboard">
-                Dashboard
-              </Link>
-            )
-          )}
+              <>
+                <div className="nav-user">
+                  <span className="nav-avatar">
+                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                  <span className="nav-user-name">
+                    {user?.name?.split(" ")[0] || "User"}
+                  </span>
+                </div>
 
-
-          {/* ================= AUTH ================= */}
-
-          {!token ? (
-            <>
-              <Link
-                to="/login"
-                className="login-link"
-              >
-                Log In
-              </Link>
-
-              <Link
-                to="/register"
-                className="register-link"
-              >
-                Register Free
-              </Link>
-            </>
-          ) : (
-            <button
-              onClick={handleLogout}
-              className="logout-link"
-            >
-              Logout
-            </button>
-          )}
-
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="nav-logout"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
         </div>
-
       </nav>
 
-
-      {/* =====================================================
-          CSS
-      ====================================================== */}
-
       <style>{`
-
-        /* ==============================================
-           MAIN NAVBAR
-        ============================================== */
-
         .learnai-navbar {
-          width: 100%;
-          height: 76px;
-
-          display: flex;
-          align-items: center;
-
-          box-sizing: border-box;
-
-          padding: 0 6%;
-
-          background: rgba(255, 255, 255, 0.97);
-
-          border-bottom: 1px solid #eeeeee;
-
           position: sticky;
           top: 0;
-
           z-index: 9999;
-
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+          width: 100%;
+          background: rgba(16, 20, 38, 0.96);
+          backdrop-filter: blur(18px);
+          border-bottom: 1px solid rgba(255,255,255,0.09);
+          box-shadow: 0 8px 30px rgba(0,0,0,0.18);
         }
 
-
-        /* ==============================================
-           LOGO
-        ============================================== */
+        .navbar-inner {
+          width: min(1280px, 92%);
+          min-height: 76px;
+          margin: auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+        }
 
         .learnai-logo {
-          display: flex;
+          display: inline-flex;
           align-items: center;
-
-          gap: 9px;
-
-          text-decoration: none;
-
-          color: #4f46e5;
-
+          gap: 10px;
+          color: #fff;
           font-size: 27px;
-          font-weight: 800;
-
+          font-weight: 850;
+          letter-spacing: -1px;
           white-space: nowrap;
-
-          transition: 0.25s ease;
         }
 
+        .learnai-logo > span:last-child > span {
+          color: #a78bfa;
+        }
 
         .logo-icon {
-          font-size: 25px;
+          font-size: 27px;
         }
-
-
-        .learnai-logo:hover {
-          transform: translateY(-1px);
-        }
-
-
-        /* ==============================================
-           NAVIGATION
-        ============================================== */
 
         .learnai-navigation {
-          margin-left: auto;
-
           display: flex;
           align-items: center;
-
-          gap: 30px;
+          gap: 25px;
         }
 
-
-        .learnai-navigation a {
-          text-decoration: none;
-
-          color: #374151;
-
-          font-size: 16px;
-          font-weight: 600;
-
+        .nav-item,
+        .nav-login {
+          position: relative;
+          color: #cbd5e1;
+          font-size: 14px;
+          font-weight: 650;
+          padding: 10px 2px;
           white-space: nowrap;
-
-          transition: all 0.25s ease;
+          transition: color 0.2s ease;
         }
 
-
-        .learnai-navigation a {
-  position: relative;
-
-  text-decoration: none;
-
-  color: #374151;
-
-  font-size: 16px;
-  font-weight: 600;
-
-  white-space: nowrap;
-
-  padding: 8px 2px;
-
-  transition:
-    color 0.25s ease,
-    transform 0.25s ease;
-}
-
-
-/* Hover */
-
-.learnai-navigation a:hover {
-  color: #4f46e5;
-
-  transform: translateY(-2px);
-}
-
-
-/* Underline */
-
-.learnai-navigation a::after {
-  content: "";
-
-  position: absolute;
-
-  left: 0;
-  bottom: 0;
-
-  width: 0;
-  height: 2px;
-
-  background: #4f46e5;
-
-  border-radius: 10px;
-
-  transition: width 0.25s ease;
-}
-
-
-/* Underline Animation */
-
-.learnai-navigation a:hover::after {
-  width: 100%;
-}
-      
-
-        /* ==============================================
-           LOGIN
-        ============================================== */
-
-        .login-link {
-          padding: 10px 5px;
-        }
-        .login-link:hover {
-          transform: translateY(-1px);
-        }  
-
-
-        /* ==============================================
-           REGISTER BUTTON
-        ============================================== */
-
-        .register-link {
-          background: #4f46e5;
-
-          color: white !important;
-
-          padding: 12px 20px;
-
+        .nav-item::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          bottom: 2px;
+          width: 0;
+          height: 2px;
           border-radius: 10px;
-
-          font-size: 15px !important;
-
-          font-weight: 700 !important;
-
-          box-shadow:
-            0 6px 18px rgba(79, 70, 229, 0.22);
-
-          transition: all 0.25s ease !important;
+          background: #a78bfa;
+          transition: width 0.25s ease;
         }
 
-
-        .register-link:hover {
-          background: #4338ca;
-
-          transform: translateY(-1px);
-
-          box-shadow:
-            0 9px 22px rgba(79, 70, 229, 0.30);
+        .nav-item:hover,
+        .nav-item.active,
+        .nav-login:hover {
+          color: #c4b5fd;
         }
 
+        .nav-item:hover::after,
+        .nav-item.active::after {
+          width: 100%;
+        }
 
-        /* ==============================================
-           LOGOUT
-        ============================================== */
+        .nav-register {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          padding: 12px 18px;
+          border-radius: 11px;
+          color: #fff;
+          background: linear-gradient(135deg, #7547e8, #9b6cff);
+          font-size: 14px;
+          font-weight: 750;
+          white-space: nowrap;
+          box-shadow: 0 7px 22px rgba(117,71,232,0.28);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
 
-        .logout-link {
-          border: none;
+        .nav-register:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 11px 28px rgba(117,71,232,0.4);
+        }
 
-          background: #ef4444;
+        .nav-user {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #e2e8f0;
+          font-size: 13px;
+          font-weight: 650;
+          white-space: nowrap;
+        }
 
-          color: white;
+        .nav-avatar {
+          width: 32px;
+          height: 32px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          color: #fff;
+          background: linear-gradient(135deg, #7547e8, #a78bfa);
+        }
 
-          padding: 11px 19px;
-
-          border-radius: 10px;
-
-          font-size: 15px;
+        .nav-logout {
+          margin: 0;
+          padding: 10px 15px;
+          border: 1px solid rgba(248,113,113,0.3);
+          border-radius: 9px;
+          color: #fecaca;
+          background: rgba(239,68,68,0.12);
+          box-shadow: none;
+          font-size: 13px;
           font-weight: 700;
-
-          cursor: pointer;
-
           white-space: nowrap;
-
-          transition: all 0.25s ease;
         }
 
-
-        .logout-link:hover {
-          background: #dc2626;
-
+        .nav-logout:hover {
+          background: rgba(239,68,68,0.24);
           transform: translateY(-1px);
+          box-shadow: none;
         }
 
-
-        /* ==============================================
-           TABLET
-        ============================================== */
-
-        @media (max-width: 900px) {
-
-          .learnai-navbar {
-            padding: 0 25px;
+        @media (max-width: 760px) {
+          .navbar-inner {
+            width: 96%;
+            min-height: 68px;
+            gap: 12px;
           }
-
 
           .learnai-logo {
-            font-size: 23px;
+            font-size: 21px;
+            gap: 6px;
           }
-
 
           .logo-icon {
             font-size: 22px;
           }
 
-
           .learnai-navigation {
-            gap: 18px;
+            flex: 1;
+            justify-content: flex-end;
+            gap: 14px;
+            overflow-x: auto;
+            scrollbar-width: none;
           }
 
-
-          .learnai-navigation a {
-            font-size: 14px;
+          .learnai-navigation::-webkit-scrollbar {
+            display: none;
           }
 
-
-          .register-link {
-            padding: 10px 14px;
+          .nav-item,
+          .nav-login {
+            font-size: 12px;
           }
 
+          .nav-register {
+            padding: 9px 11px;
+            font-size: 12px;
+          }
+
+          .nav-user-name {
+            display: none;
+          }
+
+          .nav-logout {
+            padding: 8px 10px;
+            font-size: 11px;
+          }
         }
 
-
-        /* ==============================================
-           MOBILE
-        ============================================== */
-
-        @media (max-width: 600px) {
-
-          .learnai-navbar {
-            height: 64px;
-
-            padding: 0 10px;
-
-            overflow: hidden;
+        @media (max-width: 420px) {
+          .navbar-inner {
+            width: 98%;
           }
-
-
-          /* Logo */
 
           .learnai-logo {
             font-size: 18px;
-
-            gap: 4px;
-
-            flex-shrink: 0;
           }
-
 
           .logo-icon {
-            font-size: 18px;
+            font-size: 19px;
           }
-
-
-          /* Navigation */
 
           .learnai-navigation {
-            margin-left: auto;
-
-            gap: 8px;
-
-            flex-shrink: 0;
+            gap: 10px;
           }
 
-
-          .learnai-navigation a {
-            font-size: 12px;
-
-            font-weight: 600;
-          }
-
-
-          /* Login */
-
-          .login-link {
-            padding: 5px 2px;
-          }
-
-
-          /* Register */
-
-          .register-link {
-            padding: 8px 9px;
-
-            border-radius: 8px;
-
-            font-size: 11px !important;
-          }
-
-
-          /* Logout */
-
-          .logout-link {
-            padding: 8px 9px;
-
-            border-radius: 8px;
-
+          .nav-item,
+          .nav-login {
             font-size: 11px;
           }
 
+          .nav-register {
+            padding: 8px 9px;
+            font-size: 11px;
+          }
         }
-
-
-        /* ==============================================
-           VERY SMALL MOBILE
-        ============================================== */
-
-        @media (max-width: 380px) {
-
-          .learnai-navbar {
-            padding: 0 7px;
-          }
-
-
-          .learnai-logo {
-            font-size: 16px;
-          }
-
-
-          .logo-icon {
-            font-size: 16px;
-          }
-
-
-          .learnai-navigation {
-            gap: 5px;
-          }
-
-
-          .learnai-navigation a {
-            font-size: 10px;
-          }
-
-
-          .register-link {
-            padding: 7px 7px;
-
-            font-size: 10px !important;
-          }
-
-
-          .login-link {
-            font-size: 10px !important;
-          }
-
-        }
-
       `}</style>
     </>
   );

@@ -1,5 +1,5 @@
-const express = require("express");
 
+const express = require("express");
 const router = express.Router();
 
 const {
@@ -7,13 +7,11 @@ const {
   getCourseProgress,
 } = require("../controllers/progressController");
 
-// Mark lesson completed
 router.post(
-  "/complete",
+  "/:student/:course/complete",
   completeLesson
 );
 
-// Get progress
 router.get(
   "/:student/:course",
   getCourseProgress

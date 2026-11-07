@@ -2,6 +2,40 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import API from "../api/api";
 
+function getYouTubeEmbedUrl(videoUrl) {
+  try {
+    const url = new URL(videoUrl);
+    const host = url.hostname.replace("www.", "");
+
+    let videoId = "";
+
+    if (host === "youtu.be") {
+      videoId = url.pathname.slice(1).split("/")[0];
+    } else if (
+      host === "youtube.com" ||
+      host === "m.youtube.com" ||
+      host === "youtube-nocookie.com"
+    ) {
+      if (url.pathname === "/watch") {
+        videoId = url.searchParams.get("v");
+      } else if (
+        url.pathname.startsWith("/embed/") ||
+        url.pathname.startsWith("/shorts/")
+      ) {
+        videoId = url.pathname.split("/")[2];
+      }
+    }
+
+    if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+      return `https://www.youtube-nocookie.com/embed/${videoId}`;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function Lesson() {
   const { id, lessonIndex } = useParams();
   const navigate = useNavigate();
@@ -14,53 +48,48 @@ function Lesson() {
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState("");
+  const [accessDenied, setAccessDenied] = useState(false);
 
-  const user = JSON.parse(
-    localStorage.getItem("user") || "null"
-  );
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   useEffect(() => {
     const fetchLessonData = async () => {
       try {
         setLoading(true);
         setError("");
+        setAccessDenied(false);
 
-        const courseResponse = await API.get(
-          `/courses/${id}`
-        );
-
+        const courseResponse = await API.get(`/courses/${id}`);
         const courseData = courseResponse.data.course;
 
         setCourse(courseData);
 
+        if (!courseData.hasLessonAccess) {
+          setAccessDenied(true);
+          return;
+        }
+
         const userId = user?._id || user?.id;
 
-        if (userId) {
+        if (userId && user?.role === "student") {
           try {
             const progressResponse = await API.get(
               `/progress/${userId}/${id}/`
             );
 
-            setProgress(
-              progressResponse.data.progressPercentage || 0
-            );
+            const savedProgress = progressResponse.data.progress || {};
 
-            setCompletedLessons(
-              progressResponse.data.completedLessons || []
-            );
+            setProgress(savedProgress.progressPercentage || 0);
+            setCompletedLessons(savedProgress.completedLessons || []);
           } catch (progressError) {
-            console.error(
-              "PROGRESS FETCH ERROR:",
-              progressError
-            );
+            console.error("PROGRESS FETCH ERROR:", progressError);
           }
         }
       } catch (err) {
         console.error("LESSON ERROR:", err);
 
         setError(
-          err.response?.data?.message ||
-            "Unable to load this lesson."
+          err.response?.data?.message || "Unable to load this lesson."
         );
       } finally {
         setLoading(false);
@@ -74,25 +103,26 @@ function Lesson() {
   const currentLesson = lessons[currentIndex];
 
   const isFirstLesson = currentIndex === 0;
-  const isLastLesson =
-    currentIndex === lessons.length - 1;
+  const isLastLesson = currentIndex === lessons.length - 1;
 
-  const isLessonCompleted = completedLessons.some(
-    (lesson) => {
-      if (typeof lesson === "object") {
-        return (
-          lesson.lessonIndex === currentIndex ||
-          lesson.index === currentIndex
-        );
-      }
-
-      return lesson === currentIndex;
+  const isLessonCompleted = completedLessons.some((lesson) => {
+    if (typeof lesson === "object") {
+      return (
+        lesson.lessonIndex === currentIndex ||
+        lesson.index === currentIndex
+      );
     }
-  );
+
+    return Number(lesson) === currentIndex;
+  });
+
+  const videoUrl = currentLesson?.videoUrl?.trim() || "";
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(videoUrl);
+  const isYouTubeVideo = Boolean(youtubeEmbedUrl);
 
   const handleCompleteLesson = async () => {
-    if (!user) {
-      alert("Please login first.");
+    if (!user || user.role !== "student") {
+      alert("Please login with a student account.");
       return;
     }
 
@@ -108,27 +138,22 @@ function Lesson() {
         }
       );
 
-      if (response.data) {
-        setProgress(
-          response.data.progressPercentage ??
-            progress
+      if (!response.data.success) {
+        throw new Error(
+          response.data.message || "Unable to complete lesson."
         );
-
-        if (!isLessonCompleted) {
-          setCompletedLessons([
-            ...completedLessons,
-            currentIndex,
-          ]);
-        }
       }
+
+      const savedProgress = response.data.progress;
+
+      setProgress(savedProgress.progressPercentage || 0);
+      setCompletedLessons(savedProgress.completedLessons || []);
     } catch (err) {
-      console.error(
-        "COMPLETE LESSON ERROR:",
-        err
-      );
+      console.error("COMPLETE LESSON ERROR:", err);
 
       alert(
         err.response?.data?.message ||
+          err.message ||
           "Unable to complete lesson."
       );
     } finally {
@@ -138,9 +163,7 @@ function Lesson() {
 
   const handleNextLesson = () => {
     if (!isLastLesson) {
-      navigate(
-        `/courses/${id}/lesson/${currentIndex + 1}`
-      );
+      navigate(`/courses/${id}/lesson/${currentIndex + 1}`);
 
       window.scrollTo({
         top: 0,
@@ -151,9 +174,7 @@ function Lesson() {
 
   const handlePreviousLesson = () => {
     if (!isFirstLesson) {
-      navigate(
-        `/courses/${id}/lesson/${currentIndex - 1}`
-      );
+      navigate(`/courses/${id}/lesson/${currentIndex - 1}`);
 
       window.scrollTo({
         top: 0,
@@ -174,23 +195,40 @@ function Lesson() {
     );
   }
 
-  if (error || !course || !currentLesson) {
+  if (accessDenied) {
+    return (
+      <div className="lesson-page">
+        <div className="lesson-error">
+          <div className="lesson-error-icon">🔒</div>
+          <h2>Course Content Locked</h2>
+          <p>
+            You must enroll in this course before you can access its
+            chapters and lessons.
+          </p>
+
+          <Link to={`/courses/${id}`} className="lesson-back-btn">
+            View Course & Enroll
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    error ||
+    !course ||
+    !currentLesson ||
+    currentIndex < 0 ||
+    currentIndex >= lessons.length
+  ) {
     return (
       <div className="lesson-page">
         <div className="lesson-error">
           <div className="lesson-error-icon">⚠️</div>
-
           <h2>Lesson Not Found</h2>
+          <p>{error || "The requested lesson could not be found."}</p>
 
-          <p>
-            {error ||
-              "The requested lesson could not be found."}
-          </p>
-
-          <Link
-            to={`/courses/${id}`}
-            className="lesson-back-btn"
-          >
+          <Link to={`/courses/${id}`} className="lesson-back-btn">
             ← Back to Course
           </Link>
         </div>
@@ -202,39 +240,29 @@ function Lesson() {
     <div className="lesson-page">
       <div className="lesson-container">
         <div className="lesson-topbar">
-          <Link
-            to={`/courses/${id}`}
-            className="back-course-link"
-          >
+          <Link to={`/courses/${id}`} className="back-course-link">
             ← Back to Course
           </Link>
 
-          <span>
-            {course.title}
-          </span>
+          <span>{course.title}</span>
         </div>
 
         <div className="lesson-layout">
           <aside className="lesson-sidebar">
             <div className="sidebar-course-info">
-              <span className="section-label">
-                COURSE
-              </span>
+              <span className="section-label">COURSE</span>
 
               <h2>{course.title}</h2>
 
               <div className="sidebar-progress-header">
                 <span>Your Progress</span>
-
                 <strong>{progress}%</strong>
               </div>
 
               <div className="sidebar-progress-track">
                 <div
                   className="sidebar-progress-fill"
-                  style={{
-                    width: `${progress}%`,
-                  }}
+                  style={{ width: `${progress}%` }}
                 ></div>
               </div>
             </div>
@@ -243,31 +271,23 @@ function Lesson() {
               <h3>Course Lessons</h3>
 
               {lessons.map((lesson, index) => {
-                const completed =
-                  completedLessons.some(
-                    (item) => {
-                      if (
-                        typeof item === "object"
-                      ) {
-                        return (
-                          item.lessonIndex ===
-                            index ||
-                          item.index === index
-                        );
-                      }
+                const completed = completedLessons.some((item) => {
+                  if (typeof item === "object") {
+                    return (
+                      item.lessonIndex === index ||
+                      item.index === index
+                    );
+                  }
 
-                      return item === index;
-                    }
-                  );
+                  return Number(item) === index;
+                });
 
                 return (
                   <Link
                     key={lesson._id || index}
                     to={`/courses/${id}/lesson/${index}`}
                     className={`sidebar-lesson ${
-                      index === currentIndex
-                        ? "active"
-                        : ""
+                      index === currentIndex ? "active" : ""
                     }`}
                   >
                     <div className="sidebar-lesson-number">
@@ -276,8 +296,7 @@ function Lesson() {
 
                     <div>
                       <strong>
-                        {lesson.title ||
-                          `Lesson ${index + 1}`}
+                        {lesson.title || `Lesson ${index + 1}`}
                       </strong>
 
                       <small>
@@ -301,9 +320,7 @@ function Lesson() {
               <h1>{currentLesson.title}</h1>
 
               <div className="lesson-header-meta">
-                <span>
-                  📚 {course.category || "General"}
-                </span>
+                <span>📚 {course.category || "General"}</span>
 
                 <span>
                   ⏱{" "}
@@ -312,33 +329,41 @@ function Lesson() {
                     : "Lesson"}
                 </span>
 
-                <span>
-                  📊 {course.level || "Beginner"}
-                </span>
+                <span>📊 {course.level || "Beginner"}</span>
               </div>
             </div>
 
             <div className="lesson-video-area">
-              {currentLesson.videoUrl ? (
-                <video
-                  controls
+              {isYouTubeVideo ? (
+                <iframe
+                  key={videoUrl}
                   className="lesson-video"
-                  src={currentLesson.videoUrl}
+                  src={youtubeEmbedUrl}
+                  title={currentLesson.title || "Lesson Video"}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                ></iframe>
+              ) : videoUrl ? (
+                <video
+                  key={videoUrl}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="lesson-video"
+                  src={videoUrl}
                 >
-                  Your browser does not support
-                  video playback.
+                  Your browser does not support video playback.
                 </video>
               ) : (
                 <div className="video-placeholder">
-                  <div className="video-placeholder-icon">
-                    ▶
-                  </div>
+                  <div className="video-placeholder-icon">▶</div>
 
                   <h2>Lesson Content</h2>
 
                   <p>
-                    Video content will be available
-                    here when added by the instructor.
+                    Video content will be available here when added by
+                    the instructor.
                   </p>
                 </div>
               )}
@@ -347,10 +372,7 @@ function Lesson() {
             <div className="lesson-content-card">
               <div className="lesson-content-header">
                 <div>
-                  <span className="section-label">
-                    CURRENT LESSON
-                  </span>
-
+                  <span className="section-label">CURRENT LESSON</span>
                   <h2>{currentLesson.title}</h2>
                 </div>
 
@@ -375,33 +397,28 @@ function Lesson() {
                   ← Previous
                 </button>
 
-                <button
-                  className={`complete-lesson-btn ${
-                    isLessonCompleted
-                      ? "already-completed"
-                      : ""
-                  }`}
-                  onClick={handleCompleteLesson}
-                  disabled={
-                    completing ||
-                    isLessonCompleted
-                  }
-                >
-                  {completing
-                    ? "Saving..."
-                    : isLessonCompleted
-                    ? "✓ Lesson Completed"
-                    : "✓ Mark as Complete"}
-                </button>
+                {user?.role === "student" && (
+                  <button
+                    className={`complete-lesson-btn ${
+                      isLessonCompleted ? "already-completed" : ""
+                    }`}
+                    onClick={handleCompleteLesson}
+                    disabled={completing || isLessonCompleted}
+                  >
+                    {completing
+                      ? "Saving..."
+                      : isLessonCompleted
+                      ? "✓ Lesson Completed"
+                      : "✓ Mark as Complete"}
+                  </button>
+                )}
 
                 <button
                   className="next-lesson-btn"
                   onClick={handleNextLesson}
                   disabled={isLastLesson}
                 >
-                  {isLastLesson
-                    ? "Course Complete"
-                    : "Next Lesson →"}
+                  {isLastLesson ? "Course Complete" : "Next Lesson →"}
                 </button>
               </div>
             </div>
@@ -415,8 +432,7 @@ function Lesson() {
               </button>
 
               <span>
-                Lesson {currentIndex + 1} of{" "}
-                {lessons.length}
+                Lesson {currentIndex + 1} of {lessons.length}
               </span>
 
               <button

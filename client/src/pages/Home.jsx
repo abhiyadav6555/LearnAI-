@@ -161,29 +161,35 @@ function Home() {
         </div>
       </section>
 
-      <section className="home-stats">
 
-        <div className="home-stat">
-          <strong>100+</strong>
-          <span>Learning Resources</span>
-        </div>
+<section className="home-stats">
+  <div className="home-stat">
+    <strong>{courses.length}</strong>
+    <span>Available Courses</span>
+  </div>
 
-        <div className="home-stat">
-          <strong>50+</strong>
-          <span>Courses</span>
-        </div>
+  <div className="home-stat">
+    <strong>
+      {courses.reduce(
+        (total, course) =>
+          total + (course.lessons?.length || 0),
+        0
+      )}
+    </strong>
+    <span>Available Lessons</span>
+  </div>
 
-        <div className="home-stat">
-          <strong>1K+</strong>
-          <span>Learning Activities</span>
-        </div>
+  <div className="home-stat">
+    <strong>24/7</strong>
+    <span>Learn Anytime</span>
+  </div>
 
-        <div className="home-stat">
-          <strong>24/7</strong>
-          <span>Learn Anytime</span>
-        </div>
+  <div className="home-stat">
+    <strong>2</strong>
+    <span>Account Types</span>
+  </div>
+</section>
 
-      </section>
 
       <section className="home-section home-features">
 

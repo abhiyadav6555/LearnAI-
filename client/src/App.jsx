@@ -1,9 +1,16 @@
+
 import {
   BrowserRouter,
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
+
+import { AuthProvider } from "./context/AuthContext";
+
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -12,15 +19,21 @@ import Courses from "./pages/Courses";
 import CourseDetails from "./pages/CourseDetails";
 import Lesson from "./pages/Lesson";
 import CreateCourse from "./pages/CreateCourse";
+import EditCourse from "./pages/EditCourse";
 import StudentDashboard from "./pages/StudentDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 
-import Navbar from "./components/Navbar";
+function AppRoutes() {
+  const location = useLocation();
 
-function App() {
+  const hideNavbar = [
+    "/login",
+    "/register",
+  ].includes(location.pathname);
+
   return (
-    <BrowserRouter>
-      <Navbar />
+    <>
+      {!hideNavbar && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -38,29 +51,72 @@ function App() {
 
         <Route
           path="/courses/:id/lesson/:lessonIndex"
-          element={<Lesson />}
+          element={
+            <ProtectedRoute
+              allowedRoles={["student", "instructor", "admin"]}
+            >
+              <Lesson />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/student-dashboard"
-          element={<StudentDashboard />}
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentDashboard />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/instructor-dashboard"
-          element={<InstructorDashboard />}
+          element={
+            <ProtectedRoute
+              allowedRoles={["instructor", "admin"]}
+            >
+              <InstructorDashboard />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/create-course"
-          element={<CreateCourse />}
+          element={
+            <ProtectedRoute
+              allowedRoles={["instructor", "admin"]}
+            >
+              <CreateCourse />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/edit-course/:id"
+          element={
+            <ProtectedRoute
+              allowedRoles={["instructor", "admin"]}
+            >
+              <EditCourse />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="*"
-          element={<Navigate to="/" />}
+          element={<Navigate to="/" replace />}
         />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   );
 }

@@ -5259,3 +5259,36 @@ a {
     font-size: 12px;
   }
 }
+
+
+/* Explore Courses Section - Dark Theme */
+.courses-header {
+  background: #1b2340 !important;
+  border: 1px solid #303b5c;
+  color: #e2e8f0;
+}
+
+.courses-header h2 {
+  color: #f1f5f9;
+}
+
+.courses-header p {
+  color: #a5b4d0;
+}
+
+.courses-header .section-label {
+  color: #a78bfa;
+}
+
+.course-count {
+  background: #10172d;
+  border: 1px solid #303b5c;
+}
+
+.course-count strong {
+  color: #a78bfa;
+}
+
+.course-count span {
+  color: #cbd5e1;
+}

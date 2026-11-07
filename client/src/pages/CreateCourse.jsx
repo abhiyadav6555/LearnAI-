@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/api";
@@ -17,6 +18,7 @@ function CreateCourse() {
     {
       title: "",
       description: "",
+      videoUrl: "",
       duration: 10,
     },
   ]);
@@ -49,15 +51,14 @@ function CreateCourse() {
       {
         title: "",
         description: "",
+        videoUrl: "",
         duration: 10,
       },
     ]);
   };
 
   const removeLesson = (index) => {
-    if (lessons.length === 1) {
-      return;
-    }
+    if (lessons.length === 1) return;
 
     setLessons(
       lessons.filter((_, i) => i !== index)
@@ -79,17 +80,13 @@ function CreateCourse() {
       return;
     }
 
-    if (user.role !== "instructor") {
-      setError(
-        "Only instructors can create courses."
-      );
+    if (!["instructor", "admin"].includes(user.role)) {
+      setError("Only instructors can create courses.");
       return;
     }
 
     if (lessons.length === 0) {
-      setError(
-        "Please add at least one lesson."
-      );
+      setError("Please add at least one lesson.");
       return;
     }
 
@@ -105,6 +102,7 @@ function CreateCourse() {
         lessons: lessons.map((lesson) => ({
           title: lesson.title,
           description: lesson.description,
+          videoUrl: lesson.videoUrl,
           duration: Number(lesson.duration),
         })),
       };
@@ -115,19 +113,14 @@ function CreateCourse() {
       );
 
       if (response.data.success) {
-        setMessage(
-          "🎉 Course created successfully!"
-        );
+        setMessage("🎉 Course created successfully!");
 
         setTimeout(() => {
           navigate("/instructor-dashboard");
         }, 1200);
       }
     } catch (error) {
-      console.error(
-        "CREATE COURSE ERROR:",
-        error
-      );
+      console.error("CREATE COURSE ERROR:", error);
 
       setError(
         error.response?.data?.message ||
@@ -152,8 +145,7 @@ function CreateCourse() {
 
             <p>
               Share your knowledge and create an
-              engaging learning experience for
-              students.
+              engaging learning experience for students.
             </p>
           </div>
 
@@ -179,18 +171,13 @@ function CreateCourse() {
         <form onSubmit={handleSubmit}>
 
           <section className="create-section">
-
             <div className="create-section-heading">
-              <div className="section-number">
-                01
-              </div>
+              <div className="section-number">01</div>
 
               <div>
                 <h2>Course Information</h2>
-
                 <p>
-                  Add the basic information about
-                  your course.
+                  Add the basic information about your course.
                 </p>
               </div>
             </div>
@@ -244,17 +231,9 @@ function CreateCourse() {
                   value={form.level}
                   onChange={handleChange}
                 >
-                  <option value="Beginner">
-                    Beginner
-                  </option>
-
-                  <option value="Intermediate">
-                    Intermediate
-                  </option>
-
-                  <option value="Advanced">
-                    Advanced
-                  </option>
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
                 </select>
               </div>
 
@@ -283,18 +262,13 @@ function CreateCourse() {
           </section>
 
           <section className="create-section">
-
             <div className="create-section-heading">
-              <div className="section-number">
-                02
-              </div>
+              <div className="section-number">02</div>
 
               <div>
                 <h2>Course Lessons</h2>
-
                 <p>
-                  Add lessons that students will
-                  complete in your course.
+                  Add lessons and their video lectures.
                 </p>
               </div>
             </div>
@@ -308,41 +282,30 @@ function CreateCourse() {
                 >
 
                   <div className="lesson-create-header">
-
                     <div className="lesson-number">
                       {index + 1}
                     </div>
 
                     <div>
-                      <h3>
-                        Lesson {index + 1}
-                      </h3>
-
-                      <span>
-                        Add lesson details
-                      </span>
+                      <h3>Lesson {index + 1}</h3>
+                      <span>Add lesson details and video</span>
                     </div>
 
                     {lessons.length > 1 && (
                       <button
                         type="button"
                         className="remove-lesson-btn"
-                        onClick={() =>
-                          removeLesson(index)
-                        }
+                        onClick={() => removeLesson(index)}
                       >
                         Remove
                       </button>
                     )}
-
                   </div>
 
                   <div className="lesson-form">
 
                     <div className="create-form-group">
-                      <label>
-                        Lesson Title
-                      </label>
+                      <label>Lesson Title</label>
 
                       <input
                         type="text"
@@ -350,19 +313,14 @@ function CreateCourse() {
                         placeholder="Example: Introduction to MERN"
                         value={lesson.title}
                         onChange={(e) =>
-                          handleLessonChange(
-                            index,
-                            e
-                          )
+                          handleLessonChange(index, e)
                         }
                         required
                       />
                     </div>
 
                     <div className="create-form-group">
-                      <label>
-                        Duration
-                      </label>
+                      <label>Duration</label>
 
                       <div className="duration-input">
                         <input
@@ -371,10 +329,7 @@ function CreateCourse() {
                           min="1"
                           value={lesson.duration}
                           onChange={(e) =>
-                            handleLessonChange(
-                              index,
-                              e
-                            )
+                            handleLessonChange(index, e)
                           }
                           required
                         />
@@ -384,25 +339,36 @@ function CreateCourse() {
                     </div>
 
                     <div className="create-form-group full-width">
-                      <label>
-                        Lesson Description
-                      </label>
+                      <label>Lesson Description</label>
 
                       <textarea
                         name="description"
                         placeholder="Explain what students will learn in this lesson..."
-                        value={
-                          lesson.description
-                        }
+                        value={lesson.description}
                         onChange={(e) =>
-                          handleLessonChange(
-                            index,
-                            e
-                          )
+                          handleLessonChange(index, e)
                         }
                         rows="4"
                         required
                       />
+                    </div>
+
+                    <div className="create-form-group full-width">
+                      <label>Lesson Video URL</label>
+
+                      <input
+                        type="url"
+                        name="videoUrl"
+                        placeholder="Paste YouTube or direct MP4 video URL"
+                        value={lesson.videoUrl}
+                        onChange={(e) =>
+                          handleLessonChange(index, e)
+                        }
+                      />
+
+                      <small>
+                        You can add a YouTube link or a direct MP4 video link.
+                      </small>
                     </div>
 
                   </div>
@@ -427,9 +393,7 @@ function CreateCourse() {
             <button
               type="button"
               className="cancel-course-btn"
-              onClick={() =>
-                navigate("/instructor-dashboard")
-              }
+              onClick={() => navigate("/instructor-dashboard")}
             >
               Cancel
             </button>
@@ -445,9 +409,7 @@ function CreateCourse() {
                   Creating Course...
                 </>
               ) : (
-                <>
-                  🚀 Create Course
-                </>
+                <>🚀 Create Course</>
               )}
             </button>
 

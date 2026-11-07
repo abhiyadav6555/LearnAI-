@@ -1,11 +1,12 @@
 const express = require("express");
-
 const router = express.Router();
 
 const {
   getCourses,
   getCourseById,
   getMyCourses,
+  getEnrolledCourses,
+  enrollCourse,
   createCourse,
   updateCourse,
   deleteCourse,
@@ -13,16 +14,12 @@ const {
 
 const {
   protect,
+  optionalProtect,
   authorize,
 } = require("../middleware/authMiddleware");
 
-// All courses
-router.get(
-  "/",
-  getCourses
-);
+router.get("/", getCourses);
 
-// My courses
 router.get(
   "/my-courses",
   protect,
@@ -30,13 +27,22 @@ router.get(
   getMyCourses
 );
 
-// Single course
 router.get(
-  "/:id",
-  getCourseById
+  "/enrolled",
+  protect,
+  authorize("student"),
+  getEnrolledCourses
 );
 
-// Create
+router.post(
+  "/:id/enroll",
+  protect,
+  authorize("student"),
+  enrollCourse
+);
+
+router.get("/:id", optionalProtect, getCourseById);
+
 router.post(
   "/",
   protect,
@@ -44,7 +50,6 @@ router.post(
   createCourse
 );
 
-// Update
 router.put(
   "/:id",
   protect,
@@ -52,7 +57,6 @@ router.put(
   updateCourse
 );
 
-// Delete
 router.delete(
   "/:id",
   protect,

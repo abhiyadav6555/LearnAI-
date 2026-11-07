@@ -1,13 +1,21 @@
+
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import API from "../api/api";
 
 function CourseDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [enrolling, setEnrolling] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const isStudent = user?.role === "student";
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -16,8 +24,22 @@ function CourseDetails() {
         setError("");
 
         const response = await API.get(`/courses/${id}`);
+        const courseData = response.data.course;
 
-        setCourse(response.data.course);
+        setCourse(courseData);
+
+        const userId = user?._id || user?.id;
+
+        if (userId && user?.role === "student") {
+          const enrolled = courseData.students?.some(
+            (student) =>
+              String(student?._id || student) === String(userId)
+          );
+
+          setIsEnrolled(Boolean(enrolled));
+        } else {
+          setIsEnrolled(false);
+        }
       } catch (err) {
         console.error("COURSE DETAILS ERROR:", err);
 
@@ -32,6 +54,58 @@ function CourseDetails() {
 
     fetchCourse();
   }, [id]);
+
+  const handleEnroll = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (user.role !== "student") {
+      setMessage("Only students can enroll in courses.");
+      return;
+    }
+
+    try {
+      setEnrolling(true);
+      setMessage("");
+
+      const response = await API.post(`/courses/${id}/enroll`);
+
+      if (response.data.success) {
+        setIsEnrolled(true);
+
+        setCourse((previous) => ({
+          ...previous,
+          hasLessonAccess: true,
+          lessons:
+            response.data.course.lessons ||
+            previous.lessons ||
+            [],
+          students: [
+            ...(previous.students || []),
+            user._id || user.id,
+          ],
+        }));
+
+        setMessage("Successfully enrolled in this course!");
+      }
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message || "Enrollment failed.";
+
+      if (errorMessage.toLowerCase().includes("already enrolled")) {
+        setIsEnrolled(true);
+
+        const response = await API.get(`/courses/${id}`);
+        setCourse(response.data.course);
+      }
+
+      setMessage(errorMessage);
+    } finally {
+      setEnrolling(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -50,9 +124,7 @@ function CourseDetails() {
       <div className="course-details-page">
         <div className="course-details-error">
           <div className="course-error-icon">⚠️</div>
-
           <h2>Course Not Found</h2>
-
           <p>
             {error || "The requested course could not be found."}
           </p>
@@ -66,6 +138,11 @@ function CourseDetails() {
   }
 
   const lessons = course.lessons || [];
+  const lessonCount = course.lessonCount ?? lessons.length;
+  const hasLessonAccess = Boolean(course.hasLessonAccess);
+
+  const isInstructor =
+    user?.role === "instructor" || user?.role === "admin";
 
   return (
     <div className="course-details-page">
@@ -92,27 +169,22 @@ function CourseDetails() {
               <div className="course-meta">
                 <div className="meta-item">
                   <span className="meta-icon">📊</span>
-
                   <div>
                     <small>Level</small>
-                    <strong>
-                      {course.level || "Beginner"}
-                    </strong>
+                    <strong>{course.level || "Beginner"}</strong>
                   </div>
                 </div>
 
                 <div className="meta-item">
                   <span className="meta-icon">📚</span>
-
                   <div>
                     <small>Lessons</small>
-                    <strong>{lessons.length}</strong>
+                    <strong>{lessonCount}</strong>
                   </div>
                 </div>
 
                 <div className="meta-item">
                   <span className="meta-icon">👨‍🏫</span>
-
                   <div>
                     <small>Instructor</small>
                     <strong>
@@ -147,27 +219,59 @@ function CourseDetails() {
                     : "Free"}
                 </div>
 
-                <Link
-                  to={
-                    lessons.length > 0
-                      ? `/courses/${course._id}/lesson/0`
-                      : "#"
-                  }
-                  className={`start-course-btn ${
-                    lessons.length === 0
-                      ? "disabled-btn"
-                      : ""
-                  }`}
-                  onClick={(e) => {
-                    if (lessons.length === 0) {
-                      e.preventDefault();
+                {isStudent ? (
+                  <button
+                    type="button"
+                    className="start-course-btn"
+                    onClick={
+                      isEnrolled
+                        ? () =>
+                            navigate(
+                              lessons.length > 0
+                                ? `/courses/${course._id}/lesson/0`
+                                : "/student-dashboard"
+                            )
+                        : handleEnroll
                     }
-                  }}
-                >
-                  {lessons.length > 0
-                    ? "▶ Start Learning"
-                    : "No Lessons Available"}
-                </Link>
+                    disabled={
+                      enrolling ||
+                      (isEnrolled && lessons.length === 0)
+                    }
+                  >
+                    {enrolling
+                      ? "Enrolling..."
+                      : isEnrolled
+                        ? "▶ Continue Learning"
+                        : "Enroll Now"}
+                  </button>
+                ) : !user ? (
+                  <button
+                    type="button"
+                    className="start-course-btn"
+                    onClick={() => navigate("/login")}
+                  >
+                    Login to Enroll
+                  </button>
+                ) : (
+                  <div className="start-course-btn disabled-btn">
+                    Instructor Account
+                  </div>
+                )}
+
+                {message && (
+                  <p
+                    role="status"
+                    style={{
+                      marginTop: "12px",
+                      color: message.toLowerCase().includes("success")
+                        ? "#22c55e"
+                        : "#f87171",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {message}
+                  </p>
+                )}
 
                 <div className="preview-features">
                   <div>
@@ -233,27 +337,61 @@ function CourseDetails() {
                 <span className="section-label">
                   COURSE CONTENT
                 </span>
-
                 <h2>Course Lessons</h2>
               </div>
 
               <span className="lesson-count">
-                {lessons.length}{" "}
-                {lessons.length === 1
-                  ? "Lesson"
-                  : "Lessons"}
+                {lessonCount}{" "}
+                {lessonCount === 1 ? "Lesson" : "Lessons"}
               </span>
             </div>
 
-            {lessons.length === 0 ? (
+            {!hasLessonAccess && !isEnrolled ? (
               <div className="no-lessons">
-                <span>📚</span>
-
-                <h3>No lessons available yet</h3>
+                <span>🔒</span>
+                <h3>Course Content Locked</h3>
 
                 <p>
-                  The instructor has not added lessons
-                  to this course yet.
+                  Enroll in this course to unlock all chapters and
+                  lessons.
+                </p>
+
+                {isStudent && (
+                  <button
+                    type="button"
+                    className="start-course-btn"
+                    onClick={handleEnroll}
+                    disabled={enrolling}
+                  >
+                    {enrolling
+                      ? "Enrolling..."
+                      : "Enroll Now to Unlock"}
+                  </button>
+                )}
+
+                {!user && (
+                  <button
+                    type="button"
+                    className="start-course-btn"
+                    onClick={() => navigate("/login")}
+                  >
+                    Login to Enroll
+                  </button>
+                )}
+
+                {user && !isStudent && (
+                  <p>
+                    Only enrolled students can access course lessons.
+                  </p>
+                )}
+              </div>
+            ) : lessons.length === 0 ? (
+              <div className="no-lessons">
+                <span>📚</span>
+                <h3>No lessons available yet</h3>
+                <p>
+                  The instructor has not added lessons to this course
+                  yet.
                 </p>
               </div>
             ) : (
@@ -269,8 +407,7 @@ function CourseDetails() {
 
                     <div className="lesson-info">
                       <h3>
-                        {lesson.title ||
-                          `Lesson ${index + 1}`}
+                        {lesson.title || `Lesson ${index + 1}`}
                       </h3>
 
                       <p>
@@ -290,8 +427,7 @@ function CourseDetails() {
                       to={`/courses/${course._id}/lesson/${index}`}
                       className="lesson-start-btn"
                     >
-                      Start
-                      <span>→</span>
+                      Start <span>→</span>
                     </Link>
                   </div>
                 ))}
@@ -310,38 +446,30 @@ function CourseDetails() {
 
             <div className="sidebar-detail">
               <span>📚</span>
-
               <div>
                 <small>Category</small>
-                <strong>
-                  {course.category || "General"}
-                </strong>
+                <strong>{course.category || "General"}</strong>
               </div>
             </div>
 
             <div className="sidebar-detail">
               <span>📊</span>
-
               <div>
                 <small>Level</small>
-                <strong>
-                  {course.level || "Beginner"}
-                </strong>
+                <strong>{course.level || "Beginner"}</strong>
               </div>
             </div>
 
             <div className="sidebar-detail">
               <span>🎥</span>
-
               <div>
                 <small>Total Lessons</small>
-                <strong>{lessons.length}</strong>
+                <strong>{lessonCount}</strong>
               </div>
             </div>
 
             <div className="sidebar-detail">
               <span>💰</span>
-
               <div>
                 <small>Course Price</small>
                 <strong>
@@ -361,7 +489,6 @@ function CourseDetails() {
 
               <div>
                 <small>Instructor</small>
-
                 <strong>
                   {course.instructor?.name ||
                     "LearnAI Instructor"}

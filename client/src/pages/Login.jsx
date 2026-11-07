@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../api/api";
@@ -10,53 +11,62 @@ function Login() {
     password: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
+
+    if (!form.email.trim() || !form.password) {
+      setError("Please enter your email and password.");
+      return;
+    }
 
     try {
       setLoading(true);
 
-      const response = await API.post("/auth/login", form);
+      const { data } = await API.post("/auth/login", {
+        email: form.email.trim(),
+        password: form.password,
+      });
 
-      const data = response.data;
-
-      if (data.token) {
-        localStorage.setItem("token", data.token);
+      if (!data?.token || !data?.user) {
+        setError("Invalid server response. Please try again.");
+        return;
       }
 
-      if (data.user) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(data.user)
-        );
-      }
+      // Save login information
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
+      // Notify components about authentication change
+      window.dispatchEvent(new Event("learnai-auth-change"));
+
+      // Redirect according to user role
       const role = data.user?.role;
 
-      if (role === "instructor") {
+      if (role === "instructor" || role === "admin") {
         navigate("/instructor-dashboard");
       } else {
         navigate("/student-dashboard");
       }
-    } catch (error) {
-      console.error("LOGIN ERROR:", error);
+    } catch (err) {
+      console.error("Login Error:", err);
 
       setError(
-        error.response?.data?.message ||
-          "Login failed. Please check your details."
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Login failed. Please check your email and password."
       );
     } finally {
       setLoading(false);
@@ -64,174 +74,99 @@ function Login() {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page login-page">
       <div className="auth-container">
 
+        {/* Left Side */}
         <div className="auth-showcase">
-
           <Link to="/" className="auth-logo">
-            <span>🎓</span>
-            LearnAI
+            🎓 LearnAI
           </Link>
 
           <div className="auth-showcase-content">
-
-            <span className="auth-badge">
-              🚀 Welcome Back
+            <span className="auth-tagline">
+              WELCOME BACK TO LEARNAI
             </span>
 
             <h1>
               Continue Your
-              <br />
-              <span>Learning Journey.</span>
+              <span> Learning Journey.</span>
             </h1>
 
             <p>
-              Sign in to continue learning, track your
-              progress, and build skills that move you
-              forward.
+              Sign in to access your courses, track your progress
+              and continue building your skills with LearnAI.
             </p>
 
-            <div className="auth-feature-list">
-
-              <div className="auth-feature">
-                <div className="auth-feature-icon">
-                  📚
-                </div>
-
-                <div>
-                  <strong>Learn at your pace</strong>
-                  <span>
-                    Continue your courses whenever you want.
-                  </span>
-                </div>
+            <div className="auth-benefits">
+              <div>
+                <span>✓</span>
+                Access your enrolled courses
               </div>
 
-              <div className="auth-feature">
-                <div className="auth-feature-icon">
-                  🎯
-                </div>
-
-                <div>
-                  <strong>Track your progress</strong>
-                  <span>
-                    Keep your learning journey organized.
-                  </span>
-                </div>
+              <div>
+                <span>✓</span>
+                Track your learning progress
               </div>
 
-              <div className="auth-feature">
-                <div className="auth-feature-icon">
-                  🚀
-                </div>
-
-                <div>
-                  <strong>Build new skills</strong>
-                  <span>
-                    Learn practical skills through courses.
-                  </span>
-                </div>
+              <div>
+                <span>✓</span>
+                Learn anytime, anywhere
               </div>
-
             </div>
-
           </div>
 
           <div className="auth-showcase-footer">
-            <span>🎓 Learn. Grow. Succeed.</span>
-            <span>© 2026 LearnAI</span>
+            Learn. Grow. Achieve.
           </div>
-
         </div>
 
+        {/* Right Side - Login Form */}
         <div className="auth-form-area">
-
-          <div className="auth-mobile-logo">
-            <Link to="/">
-              🎓 <span>LearnAI</span>
-            </Link>
-          </div>
-
           <div className="auth-form-card">
 
-            <div className="auth-form-header">
+            <div className="auth-mobile-logo">
+              🎓 LearnAI
+            </div>
 
-              <span className="auth-form-icon">
-                👋
-              </span>
-
+            <div className="auth-heading">
+              <span>YOUR LEARNING STARTS HERE</span>
               <h2>Welcome Back!</h2>
-
-              <p>
-                Enter your details to access your
-                LearnAI account.
-              </p>
-
+              <p>Enter your details to sign in to your account.</p>
             </div>
 
             {error && (
               <div className="auth-error">
-                <span>⚠️</span>
-                <p>{error}</p>
+                {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit}>
 
+              {/* Email */}
               <div className="auth-input-group">
+                <label htmlFor="email">Email Address</label>
 
-                <label htmlFor="email">
-                  Email Address
-                </label>
-
-                <div className="auth-input-wrapper">
-
-                  <span className="auth-input-icon">
-                    ✉️
-                  </span>
-
-                  <input
-                    id="email"
-                    type="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    value={form.email}
-                    onChange={handleChange}
-                    autoComplete="email"
-                    required
-                  />
-
-                </div>
-
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email address"
+                  value={form.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                  required
+                />
               </div>
 
+              {/* Password */}
               <div className="auth-input-group">
+                <label htmlFor="password">Password</label>
 
-                <div className="auth-label-row">
-
-                  <label htmlFor="password">
-                    Password
-                  </label>
-
-                  <span className="auth-secure-text">
-                    🔒 Secure
-                  </span>
-
-                </div>
-
-                <div className="auth-input-wrapper">
-
-                  <span className="auth-input-icon">
-                    🔑
-                  </span>
-
+                <div className="auth-password-wrapper">
                   <input
                     id="password"
-                    type={
-                      showPassword
-                        ? "text"
-                        : "password"
-                    }
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     placeholder="Enter your password"
                     value={form.password}
@@ -242,80 +177,45 @@ function Login() {
 
                   <button
                     type="button"
-                    className="password-toggle"
-                    onClick={() =>
-                      setShowPassword(!showPassword)
-                    }
-                    aria-label={
-                      showPassword
-                        ? "Hide password"
-                        : "Show password"
-                    }
+                    className="auth-password-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? "🙈" : "👁️"}
+                    {showPassword ? "Hide" : "Show"}
                   </button>
-
                 </div>
-
               </div>
 
-              <div className="auth-options">
-
-                <label className="remember-option">
-                  <input type="checkbox" />
-                  <span>Remember me</span>
-                </label>
-
-                <span className="forgot-password">
-                  Forgot password?
-                </span>
-
+              {/* Remember / Forgot */}
+              <div className="auth-form-options">
+                <span>Secure Login</span>
+                <Link to="/register">Create account</Link>
               </div>
 
+              {/* Submit */}
               <button
                 type="submit"
                 className="auth-submit-btn"
                 disabled={loading}
               >
-                {loading ? (
-                  <>
-                    <span className="auth-spinner"></span>
-                    Logging in...
-                  </>
-                ) : (
-                  <>
-                    Login to LearnAI
-                    <span>→</span>
-                  </>
-                )}
+                {loading ? "Signing In..." : "Sign In →"}
               </button>
 
             </form>
 
             <div className="auth-divider">
-              <span>or</span>
+              <span>NEW TO LEARNAI?</span>
             </div>
 
-            <div className="auth-register-box">
+            <p className="auth-switch-text">
+              Don't have an account?{" "}
+              <Link to="/register">Register Free</Link>
+            </p>
 
-              <p>
-                Don't have an account?
-              </p>
-
-              <Link to="/register">
-                Create Free Account
-                <span>→</span>
-              </Link>
-
-            </div>
+            <Link to="/" className="auth-back-home">
+              ← Back to Home
+            </Link>
 
           </div>
-
-          <p className="auth-bottom-text">
-            By continuing, you agree to use LearnAI
-            for your learning journey.
-          </p>
-
         </div>
 
       </div>
