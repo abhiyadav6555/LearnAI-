@@ -1,4 +1,3 @@
-
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -25,7 +24,9 @@ function Navbar() {
         <div className="navbar-inner">
           <Link to="/" className="learnai-logo">
             <span className="logo-icon">🎓</span>
-            <span>Learn<span>AI</span></span>
+            <span>
+              Learn<span>AI</span>
+            </span>
           </Link>
 
           <div className="learnai-navigation">
@@ -34,10 +35,7 @@ function Navbar() {
             </NavLink>
 
             {isAuthenticated && (
-              <NavLink
-                to={dashboardPath}
-                className={navClass}
-              >
+              <NavLink to={dashboardPath} className={navClass}>
                 Dashboard
               </NavLink>
             )}
@@ -50,17 +48,11 @@ function Navbar() {
 
             {!isAuthenticated ? (
               <>
-                <NavLink
-                  to="/login"
-                  className="nav-login"
-                >
+                <NavLink to="/login" className="nav-login">
                   Log In
                 </NavLink>
 
-                <Link
-                  to="/register"
-                  className="nav-register"
-                >
+                <Link to="/register" className="nav-register">
                   Get Started <span>→</span>
                 </Link>
               </>
@@ -70,6 +62,7 @@ function Navbar() {
                   <span className="nav-avatar">
                     {user?.name?.charAt(0)?.toUpperCase() || "U"}
                   </span>
+
                   <span className="nav-user-name">
                     {user?.name?.split(" ")[0] || "User"}
                   </span>
@@ -94,7 +87,7 @@ function Navbar() {
           top: 0;
           z-index: 9999;
           width: 100%;
-          background: rgba(16, 20, 38, 0.96);
+          background: rgba(16, 20, 38, 0.97);
           backdrop-filter: blur(18px);
           border-bottom: 1px solid rgba(255,255,255,0.09);
           box-shadow: 0 8px 30px rgba(0,0,0,0.18);
@@ -119,6 +112,7 @@ function Navbar() {
           font-weight: 850;
           letter-spacing: -1px;
           white-space: nowrap;
+          text-decoration: none;
         }
 
         .learnai-logo > span:last-child > span {
@@ -132,7 +126,9 @@ function Navbar() {
         .learnai-navigation {
           display: flex;
           align-items: center;
+          justify-content: flex-end;
           gap: 25px;
+          min-width: 0;
         }
 
         .nav-item,
@@ -143,6 +139,7 @@ function Navbar() {
           font-weight: 650;
           padding: 10px 2px;
           white-space: nowrap;
+          text-decoration: none;
           transition: color 0.2s ease;
         }
 
@@ -180,13 +177,8 @@ function Navbar() {
           font-size: 14px;
           font-weight: 750;
           white-space: nowrap;
+          text-decoration: none;
           box-shadow: 0 7px 22px rgba(117,71,232,0.28);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .nav-register:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 11px 28px rgba(117,71,232,0.4);
         }
 
         .nav-user {
@@ -220,86 +212,82 @@ function Navbar() {
           font-size: 13px;
           font-weight: 700;
           white-space: nowrap;
+          cursor: pointer;
         }
 
         .nav-logout:hover {
           background: rgba(239,68,68,0.24);
-          transform: translateY(-1px);
-          box-shadow: none;
         }
 
         @media (max-width: 760px) {
           .navbar-inner {
-            width: 96%;
-            min-height: 68px;
-            gap: 12px;
+            width: 100%;
+            min-height: auto;
+            padding: 12px 14px 10px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
           }
 
           .learnai-logo {
-            font-size: 21px;
-            gap: 6px;
+            font-size: 23px;
+            gap: 7px;
           }
 
           .logo-icon {
-            font-size: 22px;
+            font-size: 23px;
           }
 
           .learnai-navigation {
-            flex: 1;
-            justify-content: flex-end;
-            gap: 14px;
-            overflow-x: auto;
-            scrollbar-width: none;
-          }
-
-          .learnai-navigation::-webkit-scrollbar {
-            display: none;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px 17px;
           }
 
           .nav-item,
           .nav-login {
-            font-size: 12px;
+            font-size: 13px;
+            padding: 7px 1px;
           }
 
           .nav-register {
-            padding: 9px 11px;
+            padding: 8px 12px;
             font-size: 12px;
+          }
+
+          .nav-user {
+            gap: 5px;
           }
 
           .nav-user-name {
             display: none;
           }
 
+          .nav-avatar {
+            width: 29px;
+            height: 29px;
+          }
+
           .nav-logout {
-            padding: 8px 10px;
-            font-size: 11px;
+            padding: 8px 11px;
+            font-size: 12px;
           }
         }
 
-        @media (max-width: 420px) {
-          .navbar-inner {
-            width: 98%;
-          }
-
-          .learnai-logo {
-            font-size: 18px;
-          }
-
-          .logo-icon {
-            font-size: 19px;
-          }
-
+        @media (max-width: 380px) {
           .learnai-navigation {
-            gap: 10px;
+            gap: 7px 12px;
           }
 
           .nav-item,
           .nav-login {
-            font-size: 11px;
+            font-size: 12px;
           }
 
-          .nav-register {
-            padding: 8px 9px;
+          .nav-logout {
+            padding: 7px 9px;
             font-size: 11px;
           }
         }

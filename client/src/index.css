@@ -5292,3 +5292,291 @@ a {
 .course-count span {
   color: #cbd5e1;
 }
+
+
+/* Home Page Mobile Layout Fix */
+
+.home-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.home-hero {
+  width: 100%;
+  min-width: 0;
+}
+
+.home-hero-content {
+  width: 100%;
+  min-width: 0;
+}
+
+.home-hero h1 {
+  overflow-wrap: anywhere;
+}
+
+.home-hero-buttons {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.home-primary-btn,
+.home-secondary-btn {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.home-hero-visual {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hero-main-card {
+  max-width: calc(100% - 20px);
+  box-sizing: border-box;
+}
+
+.hero-floating-card {
+  max-width: calc(100% - 8px);
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+
+.home-stats,
+.home-section,
+.home-learning-section,
+.home-footer {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.feature-grid > *,
+.home-course-grid > *,
+.review-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 800px) {
+  .home-hero {
+    gap: 35px;
+    padding: 60px 18px 85px;
+  }
+
+  .home-hero-content {
+    max-width: 100%;
+  }
+
+  .home-hero-visual {
+    width: 100%;
+    max-width: 390px;
+    margin: 0 auto;
+  }
+
+  .home-hero-buttons {
+    width: 100%;
+    align-items: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-hero {
+    padding: 50px 16px 75px;
+    gap: 25px;
+  }
+
+  .home-hero h1 {
+    font-size: clamp(32px, 9vw, 45px);
+    letter-spacing: -1px;
+  }
+
+  .home-hero-buttons {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .home-primary-btn,
+  .home-secondary-btn {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .home-hero-visual {
+    width: 100%;
+    max-width: 360px;
+    height: 390px;
+    margin: 0 auto;
+  }
+
+  .hero-main-card {
+    left: 50%;
+    width: min(290px, calc(100% - 20px));
+    max-width: calc(100% - 20px);
+    padding: 20px;
+    transform: translateX(-50%);
+  }
+
+  .hero-floating-one {
+    top: 5px;
+    right: 0;
+  }
+
+  .hero-floating-two {
+    right: 0;
+    bottom: 10px;
+  }
+
+  .home-stats {
+    width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .home-section {
+    width: 100%;
+    padding: 65px 16px;
+  }
+
+  .home-learning-section {
+    width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .home-footer {
+    width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .home-hero {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .home-hero h1 {
+    font-size: clamp(30px, 9vw, 39px);
+  }
+
+  .home-hero-visual {
+    height: 350px;
+  }
+
+  .hero-main-card {
+    width: calc(100% - 20px);
+    padding: 18px;
+  }
+
+  .hero-main-card h3 {
+    font-size: 22px;
+  }
+
+  .hero-floating-card {
+    padding: 9px 10px;
+    gap: 7px;
+  }
+
+  .home-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-stat {
+    min-width: 0;
+    padding: 22px 10px;
+  }
+}
+/* Home Stats Cards Color Fix */
+
+.home-stat {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  color: #e5e7eb;
+  box-shadow: none;
+}
+
+.home-stat h2,
+.home-stat h3,
+.home-stat strong {
+  color: #b9a5ff;
+}
+
+.home-stat p,
+.home-stat span {
+  color: #aeb8ce;
+}
+/* Compact Course Cards on Mobile */
+
+@media (max-width: 700px) {
+  .course-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    justify-items: center;
+  }
+
+  .course-card {
+    width: 100%;
+    max-width: 460px;
+    border-radius: 16px;
+  }
+
+  .course-image {
+    height: 160px !important;
+  }
+
+  .course-placeholder span {
+    font-size: 42px;
+  }
+
+  .course-placeholder small {
+    font-size: 16px;
+  }
+
+  .course-content {
+    padding: 18px;
+  }
+
+  .course-category {
+    font-size: 11px;
+    margin-bottom: 7px;
+  }
+
+  .course-content h3 {
+    font-size: 19px;
+    margin-bottom: 8px;
+  }
+
+  .course-description {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .course-instructor {
+    margin-top: 14px;
+  }
+
+  .course-footer {
+    margin-top: 14px;
+    padding-top: 12px;
+  }
+}
+
+@media (max-width: 450px) {
+  .course-card {
+    max-width: 100%;
+  }
+
+  .course-image {
+    height: 145px !important;
+  }
+
+  .course-content {
+    padding: 16px;
+  }
+}
