@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
-
+import ForgotPassword from "./pages/ForgotPassword";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -29,6 +29,7 @@ function AppRoutes() {
   const hideNavbar = [
     "/login",
     "/register",
+    "/forgot-password",
   ].includes(location.pathname);
 
   return (
@@ -41,6 +42,11 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
 
         <Route path="/register" element={<Register />} />
+
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
 
         <Route path="/courses" element={<Courses />} />
 

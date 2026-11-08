@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
@@ -13,6 +14,13 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
+      trim: true,
+    },
+
+    mobileNumber: {
+      type: String,
+      unique: true,
+      sparse: true,
       trim: true,
     },
 

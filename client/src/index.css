@@ -5580,3 +5580,112 @@ a {
     padding: 16px;
   }
 }
+
+/* =====================================
+   LEARNAI AUTH INPUT VISIBILITY FIX
+===================================== */
+
+/* Input fields */
+.auth-page .auth-input-group input,
+.auth-page .auth-input-group select,
+.auth-page .auth-password-wrapper input {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Placeholder text */
+.auth-page .auth-input-group input::placeholder,
+.auth-page .auth-password-wrapper input::placeholder {
+  color: #8993a5 !important;
+  -webkit-text-fill-color: #8993a5 !important;
+  opacity: 1 !important;
+}
+
+/* Dropdown selected text */
+.auth-page .auth-input-group select {
+  color: #172033 !important;
+  cursor: pointer;
+}
+
+/* Dropdown options */
+.auth-page .auth-input-group select option {
+  color: #172033 !important;
+  background-color: #ffffff !important;
+  font-weight: 500;
+}
+
+/* Password characters */
+.auth-page .auth-password-wrapper input[type="password"] {
+  color: #172033 !important;
+  -webkit-text-fill-color: #172033 !important;
+  letter-spacing: 2px;
+}
+
+/* Focused input */
+.auth-page .auth-input-group input:focus,
+.auth-page .auth-input-group select:focus {
+  outline: none;
+  border-color: #6941e8 !important;
+  box-shadow: 0 0 0 3px rgba(105, 65, 232, 0.15);
+}
+
+/* Browser autofill text visibility */
+.auth-page .auth-input-group input:-webkit-autofill,
+.auth-page .auth-password-wrapper input:-webkit-autofill {
+  -webkit-text-fill-color: #172033 !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Labels */
+.auth-page .auth-input-group label {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Helper text */
+.auth-page .auth-input-group small,
+.auth-page .auth-input-hint {
+  color: #b9c3d8;
+}
+
+/* Register Password Eye Icon */
+
+.auth-page .auth-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.auth-page .auth-password-wrapper input {
+  width: 100%;
+  padding-right: 55px !important;
+}
+
+.auth-page .auth-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: transparent;
+  color: #26344d;
+  cursor: pointer;
+  font-size: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.auth-page .auth-password-toggle:hover {
+  background: #f0edff;
+  border-radius: 8px;
+}

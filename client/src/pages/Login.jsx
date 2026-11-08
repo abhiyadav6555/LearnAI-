@@ -7,7 +7,7 @@ function Login() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    email: "",
+    identifier: "",
     password: "",
   });
 
@@ -16,10 +16,7 @@ function Login() {
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
     setError("");
   };
 
@@ -27,8 +24,8 @@ function Login() {
     e.preventDefault();
     setError("");
 
-    if (!form.email.trim() || !form.password) {
-      setError("Please enter your email and password.");
+    if (!form.identifier.trim() || !form.password) {
+      setError("Please enter your email/mobile number and password.");
       return;
     }
 
@@ -36,7 +33,7 @@ function Login() {
       setLoading(true);
 
       const { data } = await API.post("/auth/login", {
-        email: form.email.trim(),
+        identifier: form.identifier.trim(),
         password: form.password,
       });
 
@@ -45,14 +42,11 @@ function Login() {
         return;
       }
 
-      // Save login information
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Notify components about authentication change
       window.dispatchEvent(new Event("learnai-auth-change"));
 
-      // Redirect according to user role
       const role = data.user?.role;
 
       if (role === "instructor" || role === "admin") {
@@ -62,11 +56,10 @@ function Login() {
       }
     } catch (err) {
       console.error("Login Error:", err);
-
       setError(
         err.response?.data?.message ||
         err.response?.data?.error ||
-        "Login failed. Please check your email and password."
+        "Login failed. Please check your details."
       );
     } finally {
       setLoading(false);
@@ -76,43 +69,24 @@ function Login() {
   return (
     <div className="auth-page login-page">
       <div className="auth-container">
-
-        {/* Left Side */}
         <div className="auth-showcase">
-          <Link to="/" className="auth-logo">
-            🎓 LearnAI
-          </Link>
+          <Link to="/" className="auth-logo">🎓 LearnAI</Link>
 
           <div className="auth-showcase-content">
-            <span className="auth-tagline">
-              WELCOME BACK TO LEARNAI
-            </span>
-
+            <span className="auth-tagline">WELCOME BACK TO LEARNAI</span>
             <h1>
               Continue Your
               <span> Learning Journey.</span>
             </h1>
-
             <p>
               Sign in to access your courses, track your progress
               and continue building your skills with LearnAI.
             </p>
 
             <div className="auth-benefits">
-              <div>
-                <span>✓</span>
-                Access your enrolled courses
-              </div>
-
-              <div>
-                <span>✓</span>
-                Track your learning progress
-              </div>
-
-              <div>
-                <span>✓</span>
-                Learn anytime, anywhere
-              </div>
+              <div><span>✓</span> Access your enrolled courses</div>
+              <div><span>✓</span> Track your learning progress</div>
+              <div><span>✓</span> Learn anytime, anywhere</div>
             </div>
           </div>
 
@@ -121,13 +95,9 @@ function Login() {
           </div>
         </div>
 
-        {/* Right Side - Login Form */}
         <div className="auth-form-area">
           <div className="auth-form-card">
-
-            <div className="auth-mobile-logo">
-              🎓 LearnAI
-            </div>
+            <div className="auth-mobile-logo">🎓 LearnAI</div>
 
             <div className="auth-heading">
               <span>YOUR LEARNING STARTS HERE</span>
@@ -135,34 +105,25 @@ function Login() {
               <p>Enter your details to sign in to your account.</p>
             </div>
 
-            {error && (
-              <div className="auth-error">
-                {error}
-              </div>
-            )}
+            {error && <div className="auth-error">{error}</div>}
 
             <form onSubmit={handleSubmit}>
-
-              {/* Email */}
               <div className="auth-input-group">
-                <label htmlFor="email">Email Address</label>
-
+                <label htmlFor="identifier">Email Address or Mobile Number</label>
                 <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="Enter your email address"
-                  value={form.email}
+                  id="identifier"
+                  type="text"
+                  name="identifier"
+                  placeholder="Enter email or mobile number"
+                  value={form.identifier}
                   onChange={handleChange}
-                  autoComplete="email"
+                  autoComplete="username"
                   required
                 />
               </div>
 
-              {/* Password */}
               <div className="auth-input-group">
                 <label htmlFor="password">Password</label>
-
                 <div className="auth-password-wrapper">
                   <input
                     id="password"
@@ -174,7 +135,6 @@ function Login() {
                     autoComplete="current-password"
                     required
                   />
-
                   <button
                     type="button"
                     className="auth-password-toggle"
@@ -185,13 +145,11 @@ function Login() {
                 </div>
               </div>
 
-              {/* Remember / Forgot */}
               <div className="auth-form-options">
-                <span>Secure Login</span>
+                <Link to="/forgot-password">Forgot Password?</Link>
                 <Link to="/register">Create account</Link>
               </div>
 
-              {/* Submit */}
               <button
                 type="submit"
                 className="auth-submit-btn"
@@ -199,7 +157,6 @@ function Login() {
               >
                 {loading ? "Signing In..." : "Sign In →"}
               </button>
-
             </form>
 
             <div className="auth-divider">
@@ -207,17 +164,12 @@ function Login() {
             </div>
 
             <p className="auth-switch-text">
-              Don't have an account?{" "}
-              <Link to="/register">Register Free</Link>
+              Don't have an account? <Link to="/register">Register Free</Link>
             </p>
 
-            <Link to="/" className="auth-back-home">
-              ← Back to Home
-            </Link>
-
+            <Link to="/" className="auth-back-home">← Back to Home</Link>
           </div>
         </div>
-
       </div>
     </div>
   );
