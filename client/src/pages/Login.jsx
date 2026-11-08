@@ -122,28 +122,36 @@ function Login() {
                 />
               </div>
 
-              <div className="auth-input-group">
-                <label htmlFor="password">Password</label>
-                <div className="auth-password-wrapper">
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Enter your password"
-                    value={form.password}
-                    onChange={handleChange}
-                    autoComplete="current-password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="auth-password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-              </div>
+             
+<div className="auth-input-group">
+  <label htmlFor="password">Password</label>
+
+  <div className="auth-password-wrapper">
+    <input
+      id="password"
+      type={showPassword ? "text" : "password"}
+      name="password"
+      placeholder="Enter your password"
+      value={form.password}
+      onChange={handleChange}
+      autoComplete="current-password"
+      required
+    />
+
+   
+<button
+  type="button"
+  className="auth-password-toggle"
+  onClick={() => setShowPassword(!showPassword)}
+  aria-label={showPassword ? "Hide password" : "Show password"}
+  title={showPassword ? "Hide password" : "Show password"}
+>
+  {showPassword ? "🙈" : "👁️"}
+</button>
+
+  </div>
+</div>
+
 
               <div className="auth-form-options">
                 <Link to="/forgot-password">Forgot Password?</Link>
